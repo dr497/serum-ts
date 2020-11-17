@@ -21,7 +21,7 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
   return (
     <div style={{
 			display: 'flex',
-			height: '100vh',
+			minHeight: '100vh',
 			flexDirection: 'column',
 			backgroundColor: 'rgb(251, 251, 251)',
 		}}>

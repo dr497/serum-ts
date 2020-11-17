@@ -15,9 +15,9 @@ import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { State as StoreState } from '../store/reducer';
-import { ActionType } from '../store/actions';
-import { useWallet } from '../components/Wallet';
+import { State as StoreState } from '../../store/reducer';
+import { ActionType } from '../../store/actions';
+import { useWallet } from '../../components/common/Wallet';
 
 export default function NewVesting() {
   const defaultEndDate = '2027-01-01';
@@ -46,9 +46,8 @@ export default function NewVesting() {
   // TODO: don't hardcode srm filter.
   const srmMint = networks.devnet.srm;
   const ownedTokenAccounts = useSelector((state: StoreState) =>
-    state.ownedTokenAccounts.filter(
-      ota =>
-        ota.accountInfo.tokenAccount.mint.toString() === srmMint.toString(),
+    state.common.ownedTokenAccounts.filter(
+      ota => ota.account.mint.toString() === srmMint.toString(),
     ),
   );
 
@@ -112,7 +111,7 @@ export default function NewVesting() {
                           <div>{`${ownedTokenAccount.publicKey}`}</div>
                           <div
                             style={{ float: 'right', color: '#ccc' }}
-                          >{`${ownedTokenAccount.accountInfo.tokenAccount.amount}`}</div>
+                          >{`${ownedTokenAccount.account.amount}`}</div>
                         </div>
                       </MenuItem>
                     );
@@ -226,7 +225,7 @@ export default function NewVesting() {
                 });
                 const vestingAccount = await client.accounts.vesting(vesting);
                 dispatch({
-                  type: ActionType.VestingAccountCreate,
+                  type: ActionType.LockupCreateVesting,
                   item: {
                     vesting: {
                       publicKey: vesting,

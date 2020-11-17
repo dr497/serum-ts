@@ -4,11 +4,22 @@ export type Action = {
 };
 
 export enum ActionType {
-  WalletSetProvider,
-  WalletIsConnected,
-  NetworkSetUrl,
-  OwnedTokenAccountsSet,
-  VestingAccountsSet,
-  VestingAccountCreate,
-  ClearStore,
+  // Common.
+  CommonAppWillStart,
+  CommonAppDidStart,
+  CommonWalletSetProvider,
+  CommonWalletIsConnected,
+  CommonNetworkSetUrl,
+  CommonOwnedTokenAccountsSet,
+  CommonClearStore,
+  CommonWalletReset,
+
+  // Lockup.
+  LockupSetVestings,
+  LockupCreateVesting,
+
+  // Registry.
+  RegistryCreateEntity,
+  RegistrySetEntities,
+  RegistrySetMember,
 }

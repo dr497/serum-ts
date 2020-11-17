@@ -7,18 +7,20 @@ import React, {
   useContext,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Button from '@material-ui/core/Button';
+import * as bs58 from 'bs58';
+import * as BufferLayout from 'buffer-layout';
 import { useSnackbar } from 'notistack';
-
-import { State as StoreState } from '../store/reducer';
-import { ActionType } from '../store/actions';
+import Button from '@material-ui/core/Button';
+import { AccountInfo as TokenAccount } from '@solana/spl-token';
 // @ts-ignore
 import Wallet from '@project-serum/sol-wallet-adapter';
 import { Client, accounts, networks } from '@project-serum/lockup';
+import { Client as RegistryClient } from '@project-serum/registry';
 import { Connection, PublicKey } from '@solana/web3.js';
-import * as bs58 from 'bs58';
-import * as BufferLayout from 'buffer-layout';
 import { TokenInstructions } from '@project-serum/serum';
+import * as registry from '@project-serum/registry';
+import { State as StoreState, ProgramAccount } from '../../store/reducer';
+import { ActionType } from '../../store/actions';
 
 export function useWallet(): WalletContextValues {
   const w = useContext(WalletContext);
@@ -32,7 +34,8 @@ const WalletContext = React.createContext<null | WalletContextValues>(null);
 
 type WalletContextValues = {
   wallet: Wallet;
-  client: Client;
+  client: Client; // todo: rename lockupClient.
+  registryClient: RegistryClient;
 };
 
 export function WalletProvider(
@@ -40,8 +43,8 @@ export function WalletProvider(
 ): ReactElement {
   const { walletProvider, networkUrl } = useSelector((state: StoreState) => {
     return {
-      walletProvider: state.walletProvider,
-      networkUrl: state.networkUrl,
+      walletProvider: state.common.walletProvider,
+      networkUrl: state.common.networkUrl,
     };
   });
   const wallet = useMemo(() => new Wallet(walletProvider, networkUrl), [
@@ -49,10 +52,19 @@ export function WalletProvider(
     networkUrl,
   ]);
 
-  const client = useMemo(() => Client.devnet(wallet), [wallet]);
+  const { client, registryClient } = useMemo(() => {
+    return {
+      client: Client.devnet(wallet, {
+        preflightCommitment: 'recent',
+      }),
+      registryClient: RegistryClient.devnet(wallet, {
+        preflightCommitment: 'recent',
+      }),
+    };
+  }, [wallet]);
 
   return (
-    <WalletContext.Provider value={{ wallet, client }}>
+    <WalletContext.Provider value={{ wallet, client, registryClient }}>
       {props.children}
     </WalletContext.Provider>
   );
@@ -60,10 +72,10 @@ export function WalletProvider(
 
 export function WalletConnectButton(): ReactElement {
   const isConnected = useSelector(
-    (state: StoreState) => state.walletIsConnected,
+    (state: StoreState) => state.common.walletIsConnected,
   );
   const dispatch = useDispatch();
-  const { wallet, client } = useWallet();
+  const { wallet, client, registryClient } = useWallet();
   const { enqueueSnackbar } = useSnackbar();
 
   const connect = () => {
@@ -74,10 +86,35 @@ export function WalletConnectButton(): ReactElement {
     wallet.disconnect();
   };
 
+  // One time application startup.
+  useEffect(() => {
+		dispatch({
+			type: ActionType.CommonAppWillStart,
+			item: {},
+		});
+    const fetchEntityAccounts = async () => {
+      const entityAccounts = await getEntityAccounts(
+        registryClient.provider.connection,
+      );
+      dispatch({
+        type: ActionType.RegistrySetEntities,
+        item: {
+          entities: entityAccounts,
+        },
+      });
+			dispatch({
+				type: ActionType.CommonAppDidStart,
+				item: {},
+			});
+    };
+    fetchEntityAccounts();
+  }, [dispatch, registryClient.provider.connection]);
+
+  // Wallet connection event listeners.
   useEffect(() => {
     wallet.on('disconnect', () => {
       dispatch({
-        type: ActionType.ClearStore,
+        type: ActionType.CommonWalletReset,
         item: {},
       });
       enqueueSnackbar('Disconnected from wallet', {
@@ -87,7 +124,7 @@ export function WalletConnectButton(): ReactElement {
     });
     wallet.on('connect', async () => {
       dispatch({
-        type: ActionType.WalletIsConnected,
+        type: ActionType.CommonWalletIsConnected,
         item: {
           walletIsConnected: true,
         },
@@ -99,7 +136,7 @@ export function WalletConnectButton(): ReactElement {
           wallet.publicKey,
         );
         dispatch({
-          type: ActionType.OwnedTokenAccountsSet,
+          type: ActionType.CommonOwnedTokenAccountsSet,
           item: {
             ownedTokenAccounts,
           },
@@ -112,7 +149,7 @@ export function WalletConnectButton(): ReactElement {
           wallet.publicKey,
         );
         dispatch({
-          type: ActionType.VestingAccountsSet,
+          type: ActionType.LockupSetVestings,
           item: {
             vestingAccounts,
           },
@@ -141,7 +178,7 @@ export function WalletConnectButton(): ReactElement {
 export async function getOwnedTokenAccounts(
   connection: Connection,
   publicKey: PublicKey,
-) {
+): Promise<ProgramAccount<TokenAccount>[]> {
   let filters = getOwnedAccountsFilters(publicKey);
   // @ts-ignore
   let resp = await connection._rpcRequest('getProgramAccounts', [
@@ -162,16 +199,11 @@ export async function getOwnedTokenAccounts(
   return (
     resp.result
       // @ts-ignore
-      .map(({ pubkey, account: { data, executable, owner, lamports } }) => {
+      .map(({ pubkey, account: { data } }) => {
         data = bs58.decode(data);
         return {
           publicKey: new PublicKey(pubkey),
-          accountInfo: {
-            tokenAccount: parseTokenAccountData(data),
-            executable,
-            owner: new PublicKey(owner),
-            lamports,
-          },
+          account: parseTokenAccountData(data),
         };
       })
   );
@@ -180,7 +212,7 @@ export async function getOwnedTokenAccounts(
 export async function getVestingAccounts(
   connection: Connection,
   publicKey: PublicKey,
-) {
+): Promise<ProgramAccount<accounts.Vesting>[]> {
   let filters = getVestingAccountsFilters(publicKey);
 
   // @ts-ignore
@@ -203,11 +235,11 @@ export async function getVestingAccounts(
   return (
     resp.result
       // @ts-ignore
-      .map(({ pubkey, account: { data, executable, owner, lamports } }) => {
+      .map(({ pubkey, account: { data } }) => {
         data = bs58.decode(data);
         return {
           publicKey: new PublicKey(pubkey),
-          vesting: accounts.vesting.decode(data),
+          account: accounts.vesting.decode(data),
         };
       })
   );
@@ -225,6 +257,51 @@ function getVestingAccountsFilters(publicKey: PublicKey) {
     },
     {
       dataSize: accounts.vesting.SIZE,
+    },
+  ];
+}
+
+export async function getEntityAccounts(
+  connection: Connection,
+): Promise<ProgramAccount<registry.accounts.Entity>[]> {
+  let filters = getEntityAccountsFilters();
+
+  // @ts-ignore
+  let resp = await connection._rpcRequest('getProgramAccounts', [
+    registry.networks.devnet.programId.toBase58(),
+    {
+      commitment: connection.commitment,
+      filters,
+    },
+  ]);
+  if (resp.error) {
+    throw new Error('failed to get entity accounts');
+  }
+
+  return (
+    resp.result
+      // @ts-ignore
+      .map(({ pubkey, account: { data } }) => {
+        data = bs58.decode(data);
+        return {
+          publicKey: new PublicKey(pubkey),
+          account: registry.accounts.entity.decode(data),
+        };
+      })
+  );
+}
+
+// All initialized entity accounts.
+function getEntityAccountsFilters() {
+  return [
+    {
+      memcmp: {
+        offset: 0,
+        bytes: '2',
+      },
+    },
+    {
+      dataSize: registry.accounts.entity.SIZE,
     },
   ];
 }

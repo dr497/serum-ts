@@ -19,7 +19,12 @@ export default function Layout(props: PropsWithChildren<Props>) {
 
 function Nav(props: PropsWithChildren<Props>): ReactElement {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+			display: 'flex',
+			height: '100vh',
+			flexDirection: 'column',
+			backgroundColor: 'rgb(251, 251, 251)',
+		}}>
       <AppBar
         position="static"
         style={{

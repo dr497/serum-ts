@@ -19,7 +19,11 @@ export interface Balances {
   currentMegaDeposit: BN;
 }
 
-export type EntityState = Inactive | PendingDeactivation | Active;
+export type EntityState = {
+  inactive?: Inactive;
+  pendingDeactivation?: PendingDeactivation;
+  active?: Active;
+};
 export type Inactive = {};
 export type PendingDeactivation = {
   deactivationStartTs: BN;

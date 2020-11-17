@@ -1,7 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { useWallet } from '../components/Wallet';
-import { State as StoreState, VestingAccount } from '../store/reducer';
+import { useWallet } from '../../components/common/Wallet';
+import { ProgramAccount, State as StoreState } from '../../store/reducer';
+import { accounts } from '@project-serum/lockup';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
@@ -18,12 +19,12 @@ import BN from 'bn.js';
 export default function VestingAccounts() {
   const { wallet } = useWallet();
   const vestingAccounts = useSelector(
-    (state: StoreState) => state.vestingAccounts,
+    (state: StoreState) => state.lockup.vestings,
   );
   const urlSuffix = '?cluster=devnet'; // todo: don't hardcode
   const totalBalance = wallet.publicKey
     ? vestingAccounts
-        .map(a => a.vesting.balance)
+        .map(va => va.account.balance)
         .reduce((a, b) => a.add(b), new BN(0))
         .toNumber()
     : 0;
@@ -44,7 +45,7 @@ export default function VestingAccounts() {
         >
           <div style={{ float: 'right' }}>
             <RouterLink
-              to={'/new'}
+              to={'/lockup/vesting/new'}
               style={{ color: 'inherit', textDecoration: 'none' }}
             >
               <Button variant="contained" color="secondary">
@@ -104,25 +105,25 @@ export default function VestingAccounts() {
 }
 
 type VestingAccountCardProps = {
-  vesting: VestingAccount;
+  vesting: ProgramAccount<accounts.Vesting>;
 };
 
 function VestingAccountCard(props: VestingAccountCardProps) {
   const { vesting } = props;
-  const startTs = vesting.vesting.startTs;
-  const endTs = vesting.vesting.endTs;
+  const startTs = vesting.account.startTs;
+  const endTs = vesting.account.endTs;
 
-  const tsOverflow = endTs.sub(startTs).mod(vesting.vesting.periodCount);
+  const tsOverflow = endTs.sub(startTs).mod(vesting.account.periodCount);
   const shiftedStartTs = startTs.sub(tsOverflow);
 
-  const period = endTs.sub(shiftedStartTs).div(vesting.vesting.periodCount);
+  const period = endTs.sub(shiftedStartTs).div(vesting.account.periodCount);
 
   // Make the horizontal axis evenly spaced.
   //
   // Vesting dates assuming we stretch the start date back in time (so that the
   // periods are of even length).
   const vestingDates = [
-    ...Array(vesting.vesting.periodCount.toNumber() + 1),
+    ...Array(vesting.account.periodCount.toNumber() + 1),
   ].map((_, idx) => {
     return formatDate(
       new Date((shiftedStartTs.toNumber() + idx * period.toNumber()) * 1000),
@@ -132,12 +133,12 @@ function VestingAccountCard(props: VestingAccountCardProps) {
   vestingDates[0] = formatDate(new Date(startTs.toNumber() * 1000));
 
   // Now do the same thing on the vertical axis.
-  const rewardOverflow = vesting.vesting.startBalance.mod(
-    vesting.vesting.periodCount,
+  const rewardOverflow = vesting.account.startBalance.mod(
+    vesting.account.periodCount,
   );
-  const rewardPerPeriod = vesting.vesting.startBalance
+  const rewardPerPeriod = vesting.account.startBalance
     .sub(rewardOverflow)
-    .div(vesting.vesting.periodCount)
+    .div(vesting.account.periodCount)
     .toNumber();
   const cumulativeVesting = [...Array(vestingDates.length)].map(() => 0);
   cumulativeVesting[1] = rewardPerPeriod + rewardOverflow.toNumber();
@@ -146,10 +147,10 @@ function VestingAccountCard(props: VestingAccountCardProps) {
   }
 
   const startLabel = formatDate(
-    new Date(vesting.vesting.startTs.toNumber() * 1000),
+    new Date(vesting.account.startTs.toNumber() * 1000),
   );
   const endLabel = formatDate(
-    new Date(vesting.vesting.endTs.toNumber() * 1000),
+    new Date(vesting.account.endTs.toNumber() * 1000),
   );
 
   const currencyLabel = 'SRM'; // todo: don't hardcode.
@@ -183,7 +184,7 @@ function VestingAccountCard(props: VestingAccountCardProps) {
                   {vesting.publicKey.toString()}
                 </Link>
               }
-              secondary={`${startLabel}, ${endLabel} | ${vesting.vesting.periodCount.toNumber()}`}
+              secondary={`${startLabel}, ${endLabel} | ${vesting.account.periodCount.toNumber()} periods`}
             />
             <div
               style={{
@@ -195,7 +196,7 @@ function VestingAccountCard(props: VestingAccountCardProps) {
               }}
             >
               <Typography variant="body1">
-                {`${vesting.vesting.balance.toNumber()} ${currencyLabel}`}
+                {`${vesting.account.balance.toNumber()} ${currencyLabel}`}
               </Typography>
             </div>
           </div>

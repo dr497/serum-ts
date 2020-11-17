@@ -1,0 +1,17 @@
+export default {
+  projectSerum: 'https://projectserum.com',
+  serumDex: 'https://dex.projectserum.com',
+  serumSwap: 'https://swap.projectserum.com',
+  serumTelegram: 'https://t.me/ProjectSerum',
+  serumTwitter: 'https://twitter.com/projectserum',
+  serumDiscord: 'https://discord.gg/zxPsXcB',
+  developerResources: 'https://github.com/project-serum/awesome-serum',
+  serumWhitePaper: 'https://projectserum.com/white-paper',
+  serumAcademy: 'https://serum-academy.com/',
+  solanaWhitePaper: 'https://solana.com/solana-whitepaper.pdf',
+  solanaExplorer: 'https://explorer.solana.com/',
+  serumGithub: 'https://github.com/project-serum',
+  solanaGithub: 'https://github.com/solana-labs',
+  explorerAddress: 'https://explorer.solana.com/address/',
+  explorerTx: 'https://explorer.solana.com/tx/',
+};

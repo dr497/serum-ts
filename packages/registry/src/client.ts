@@ -332,7 +332,7 @@ export default class Client {
       tx: txSig,
     };
   }
-  // 800 922 0204
+
   async createEntity(req: CreateEntityRequest): Promise<CreateEntityResponse> {
     let { leader } = req;
     const leaderPubkey =
@@ -1332,3 +1332,46 @@ function poolStateSize(assetLen: number): number {
     customState: Buffer.from([]),
   }).length;
 }
+
+/*
+							<Typography
+                style={{
+									marginTop: '5px',
+									fontSize: '12px',
+									overflow: 'hidden',
+									color: 'rgba(0, 0, 0, 0.54)',
+								}}
+							>
+								<div style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}>
+									<div>
+										Leader
+									</div>
+									<div>
+										{entity.account.leader.toString()}
+									</div>
+								</div>
+							</Typography>
+							<Typography
+                style={{
+									marginTop: '5px',
+									fontSize: '12px',
+									overflow: 'hidden',
+									color: 'rgba(0, 0, 0, 0.54)',
+									borderBottom: 'solid 1pt',
+								}}
+							>
+								SRM Pool Shares
+							</Typography>
+              <Typography
+                style={{
+									fontSize: '12px',
+									overflow: 'hidden',
+									color: 'rgba(0, 0, 0, 0.54)',
+								}}
+              >
+                {entity.account.balances.sptAmount.toString()}
+              </Typography>
+*/

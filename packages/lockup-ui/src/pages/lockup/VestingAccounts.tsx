@@ -39,11 +39,27 @@ export default function VestingAccounts() {
         <div
           style={{
             display: 'flex',
-            flexDirection: 'row-reverse',
+            justifyContent: 'space-between',
             marginBottom: '24px',
           }}
         >
-          <div style={{ float: 'right' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexDirection: 'column',
+            }}
+          >
+            <Typography
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+              }}
+            >
+              Vesting Accounts
+            </Typography>
+          </div>
+          <div>
             <RouterLink
               to={'/lockup/vesting/new'}
               style={{ color: 'inherit', textDecoration: 'none' }}

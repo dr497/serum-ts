@@ -89,7 +89,7 @@ export default function NewVesting() {
             }}
           >
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">From</InputLabel>
+              <InputLabel>From</InputLabel>
               <Select
                 fullWidth
                 value={fromAccount}

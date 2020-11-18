@@ -70,7 +70,13 @@ export function WalletProvider(
   );
 }
 
-export function WalletConnectButton(): ReactElement {
+type WalletConnectButtonProps = {
+  style?: any;
+};
+
+export function WalletConnectButton(
+  props: WalletConnectButtonProps,
+): ReactElement {
   const isConnected = useSelector(
     (state: StoreState) => state.common.walletIsConnected,
   );
@@ -88,10 +94,10 @@ export function WalletConnectButton(): ReactElement {
 
   // One time application startup.
   useEffect(() => {
-		dispatch({
-			type: ActionType.CommonAppWillStart,
-			item: {},
-		});
+    dispatch({
+      type: ActionType.CommonAppWillStart,
+      item: {},
+    });
     const fetchEntityAccounts = async () => {
       const entityAccounts = await getEntityAccounts(
         registryClient.provider.connection,
@@ -102,10 +108,10 @@ export function WalletConnectButton(): ReactElement {
           entities: entityAccounts,
         },
       });
-			dispatch({
-				type: ActionType.CommonAppDidStart,
-				item: {},
-			});
+      dispatch({
+        type: ActionType.CommonAppDidStart,
+        item: {},
+      });
     };
     fetchEntityAccounts();
   }, [dispatch, registryClient.provider.connection]);
@@ -165,11 +171,11 @@ export function WalletConnectButton(): ReactElement {
   }, [wallet, dispatch, enqueueSnackbar, client.provider.connection]);
 
   return isConnected ? (
-    <Button color="inherit" onClick={disconnect}>
+    <Button style={props.style} color="inherit" onClick={disconnect}>
       Disconnect
     </Button>
   ) : (
-    <Button color="inherit" onClick={connect}>
+    <Button style={props.style} color="inherit" onClick={connect}>
       Connect wallet
     </Button>
   );

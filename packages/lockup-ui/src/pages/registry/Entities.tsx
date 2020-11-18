@@ -33,36 +33,42 @@ export default function Entities() {
 
   return (
     <div>
-			<div style={{
-				display: 'flex',
-				justifyContent: 'space-between',
-				marginLeft: '5px',
-				marginBottom: '10px',
-			}}>
-				<div style={{
-					display: 'flex',
-					justifyContent: 'center',
-					flexDirection: 'column',
-				}}>
-					<Typography style={{
-						fontSize: '20px',
-						fontWeight: 'bold',
-					}}>
-						Node Entities
-					</Typography>
-				</div>
-				<NewButton style={{ visibility: !isWalletConnected ? 'hidden' : ''  }} />
-			</div>
-			<div
-				style={{
-					display: 'flex',
-					flexWrap: 'wrap',
-				}}
-			>
-				{entities.map(entity => (
-					<EntityCard entity={entity} />
-				))}
-			</div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          //				marginLeft: '5px',
+          marginBottom: '10px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography
+            style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+            }}
+          >
+            Node Entities
+          </Typography>
+        </div>
+        <NewButton style={{ visibility: !isWalletConnected ? 'hidden' : '' }} />
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+        }}
+      >
+        {entities.map(entity => (
+          <EntityCard entity={entity} />
+        ))}
+      </div>
       <style>
         {`
 .entity-card-container {
@@ -117,10 +123,12 @@ function EntityCard(props: EntityCardProps) {
               boxShadow: '0px 0px 25px 0px rgba(0,0,0,0.05)',
             }}
           >
-            <CardContent style={{
-							height: '100%',
-							paddingBottom: '16px', // Override material's non-symmetric default.
-						}}>
+            <CardContent
+              style={{
+                height: '100%',
+                paddingBottom: '16px', // Override material's non-symmetric default.
+              }}
+            >
               <div
                 className="entity-card-container-inner"
                 style={{
@@ -170,7 +178,7 @@ function EntityCard(props: EntityCardProps) {
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between' }}
                 >
-									<EntityActivityLabel entity={entity} />
+                  <EntityActivityLabel entity={entity} />
                   <Typography color="textSecondary">
                     {`Generation ${entity.account.generation}`}
                   </Typography>
@@ -185,13 +193,13 @@ function EntityCard(props: EntityCardProps) {
 }
 
 type EntityActivityLabelProps = {
-	entity: ProgramAccount<accounts.Entity>;
+  entity: ProgramAccount<accounts.Entity>;
 };
 
 export function EntityActivityLabel(props: EntityActivityLabelProps) {
-	const { entity } = props;
-	return (
-		<>
+  const { entity } = props;
+  return (
+    <>
       {entity.account.state.active !== undefined && (
         <ActivityLabel color="green" text="Active" />
       )}
@@ -201,8 +209,8 @@ export function EntityActivityLabel(props: EntityActivityLabelProps) {
       {entity.account.state.inactive !== undefined && (
         <ActivityLabel color="red" text="Inactive" />
       )}
-		</>
-	);
+    </>
+  );
 }
 
 type ActivityLabelProps = {
@@ -244,7 +252,7 @@ function ActivityLabel(props: ActivityLabelProps) {
 }
 
 type NewButtonProps = {
-	style?: any;
+  style?: any;
 };
 
 function NewButton(props?: NewButtonProps) {
@@ -291,16 +299,15 @@ function EntityDialog(props: EntityDialogProps) {
   const { entity, open, onClose } = props;
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="md">
-      <DialogContent style={{
-				backgroundColor: '#fbfbfb',
-				padding: 0,
-				minHeight: '850px',
-				/*paddingBottom: '20px',*/
-			}}>
+      <DialogContent
+        style={{
+          backgroundColor: '#fbfbfb',
+          padding: 0,
+          minHeight: '850px',
+        }}
+      >
         <Entity entity={entity} />
       </DialogContent>
     </Dialog>
   );
 }
-
-// #fbfbfb

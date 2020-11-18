@@ -13,6 +13,7 @@ export enum ActionType {
   CommonOwnedTokenAccountsSet,
   CommonClearStore,
   CommonWalletReset,
+  ConsumeLoginOnceToken,
 
   // Lockup.
   LockupSetVestings,

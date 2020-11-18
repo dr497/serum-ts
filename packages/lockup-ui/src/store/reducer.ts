@@ -39,6 +39,9 @@ export default function reducer(
       newState.common.ownedTokenAccounts = [];
       newState.lockup.vestings = [];
       return newState;
+    case ActionType.ConsumeLoginOnceToken:
+      newState.common.loginOnceToken = false;
+      return newState;
 
     // Lockup.
     case ActionType.LockupSetVestings:
@@ -72,6 +75,7 @@ export type State = {
 };
 
 export type CommonState = {
+  loginOnceToken: boolean;
   isBootstrapped: boolean;
   walletProvider?: string;
   walletIsConnected: boolean;
@@ -90,6 +94,7 @@ export type RegistryState = {
 
 export const initialState: State = {
   common: {
+    loginOnceToken: true,
     isBootstrapped: false,
     walletProvider: 'https://www.sollet.io',
     walletIsConnected: false,

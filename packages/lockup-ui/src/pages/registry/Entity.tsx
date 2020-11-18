@@ -33,9 +33,10 @@ enum TabModel {
 export default function Entity(props: Props) {
   const { entity } = props;
   const [tab, setTab] = useState(TabModel.Stake);
-  let { isWalletConnected } = useSelector((state: StoreState) => {
+  let { isWalletConnected, member } = useSelector((state: StoreState) => {
     return {
       isWalletConnected: state.common.walletIsConnected,
+      member: state.registry.member,
     };
   });
 
@@ -103,7 +104,7 @@ export default function Entity(props: Props) {
               }}
             >
               <div style={{ flex: 1 }}></div>
-              {isWalletConnected && <JoinButton />}
+              {isWalletConnected && member !== undefined && <JoinButton />}
             </div>
           </div>
         </div>

@@ -17,12 +17,15 @@ import { useHistory } from 'react-router-dom';
 import Entity from './Entity';
 
 export default function Entities() {
-  let { entities, isWalletConnected } = useSelector((state: StoreState) => {
-    return {
-      entities: state.registry.entities,
-      isWalletConnected: state.common.walletIsConnected,
-    };
-  });
+  let { entities, isWalletConnected, member } = useSelector(
+    (state: StoreState) => {
+      return {
+        entities: state.registry.entities,
+        isWalletConnected: state.common.walletIsConnected,
+        member: state.registry.member,
+      };
+    },
+  );
   // Sort entities by activation.
   entities = entities
     .filter(e => e.account.state.active !== undefined)
@@ -37,7 +40,6 @@ export default function Entities() {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          //				marginLeft: '5px',
           marginBottom: '10px',
         }}
       >
@@ -57,7 +59,9 @@ export default function Entities() {
             Node Entities
           </Typography>
         </div>
-        <NewButton style={{ visibility: !isWalletConnected ? 'hidden' : '' }} />
+        <NewButton
+          style={{ visibility: !isWalletConnected || !member ? 'hidden' : '' }}
+        />
       </div>
       <div
         style={{

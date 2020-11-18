@@ -4,14 +4,13 @@ import Layout from './components/common/Layout';
 import NewVestingAccount from './pages/lockup/NewVestingAccount';
 import VestingAccounts from './pages/lockup/VestingAccounts';
 import Entities from './pages/registry/Entities';
-import Entity from './pages/registry/Entity';
 
 export default function Routes() {
   return (
     <React.Fragment>
       <HashRouter basename={'/'}>
         <Layout>
-          <Route exact path="/" component={VestingAccounts} />
+          <Route exact path="/" component={Entities} />
           <Route exact path="/lockup" component={VestingAccounts} />
           <Route
             exact

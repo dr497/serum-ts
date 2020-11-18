@@ -110,12 +110,34 @@ export function WalletConnectButton(
           entities: entityAccounts,
         },
       });
+    };
+
+    const fetchMemberAccount = async () => {
+      const members = await getMemberAccounts(
+        registryClient.provider.connection,
+        wallet.publicKey,
+      );
+      if (members.length > 0) {
+        // TODO: probably want a UI to handle multiple member accounts and
+        //       choosing between them.
+        dispatch({
+          type: ActionType.RegistrySetMember,
+          item: {
+            member: members[0],
+          },
+        });
+      }
+    };
+
+    const fetchBootstrapData = async () => {
+      await Promise.all([fetchEntityAccounts(), fetchMemberAccount()]);
       dispatch({
         type: ActionType.CommonAppDidStart,
         item: {},
       });
     };
-    fetchEntityAccounts();
+
+    fetchBootstrapData();
   }, [dispatch, registryClient.provider.connection]);
 
   // Wallet connection event listeners.
@@ -184,6 +206,14 @@ export function WalletConnectButton(
       </Typography>
     </Button>
   );
+}
+
+async function getMemberAccounts(
+  connection: Connection,
+  publicKey: PublicKey,
+): Promise<ProgramAccount<registry.accounts.Member>[]> {
+  // todo
+  return [];
 }
 
 export async function getOwnedTokenAccounts(

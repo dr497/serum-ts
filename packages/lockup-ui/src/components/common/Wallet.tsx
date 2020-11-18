@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import PersonIcon from '@material-ui/icons/Person';
 import { AccountInfo as TokenAccount } from '@solana/spl-token';
+import { sleep } from '@project-serum/common';
 // @ts-ignore
 import Wallet from '@project-serum/sol-wallet-adapter';
 import { Client, accounts, networks } from '@project-serum/lockup';
@@ -118,28 +119,37 @@ export function WalletConnectButton(
       });
     };
 
-		const fetchPoolData = async () => {
-			const registrar = await registryClient.accounts.registrar();
-			const [pool, poolTokenMint, poolVault, megaPool, megaPoolTokenMint, megaPoolVaults] = await Promise.all([
-				registryClient.accounts.pool(registrar),
-				registryClient.accounts.poolTokenMint(undefined, registrar),
-				registryClient.accounts.poolVault(registrar),
-				registryClient.accounts.megaPool(registrar),
-				registryClient.accounts.poolTokenMint(undefined, registrar),
-				registryClient.accounts.megaPoolVaults(registrar),
-			]);
-			dispatch({
-				type: ActionType.RegistrySetPools,
-				item: {
-					pool,
-					poolTokenMint,
-					poolVault,
-					megaPool,
-					megaPoolTokenMint,
-					megaPoolVaults,
-				}
-			});
-		};
+    const fetchPoolData = async () => {
+      const registrar = await registryClient.accounts.registrar();
+      const [pool, poolVault, megaPool, megaPoolVaults] = await Promise.all([
+        registryClient.accounts.pool(registrar),
+        registryClient.accounts.poolVault(registrar),
+        registryClient.accounts.megaPool(registrar),
+        registryClient.accounts.megaPoolVaults(registrar),
+      ]);
+      // Getting rate limited so break up RPC requests and sleep.
+      const poolTokenMint = await registryClient.accounts.poolTokenMint(
+        pool,
+        registrar,
+      );
+      await sleep(1000 * 2);
+      const megaPoolTokenMint = await registryClient.accounts.megaPoolTokenMint(
+        megaPool,
+        registrar,
+      );
+
+      dispatch({
+        type: ActionType.RegistrySetPools,
+        item: {
+          pool,
+          poolTokenMint,
+          poolVault,
+          megaPool,
+          megaPoolTokenMint,
+          megaPoolVaults,
+        },
+      });
+    };
 
     const fetchBootstrapData = async () => {
       await Promise.all([fetchEntityAccounts(), fetchPoolData()]);

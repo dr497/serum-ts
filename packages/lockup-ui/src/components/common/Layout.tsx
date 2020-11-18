@@ -162,7 +162,7 @@ function NavBar(props: NavBarProps) {
                     flexDirection: 'column',
                   }}
                 >
-                  <Typography style={{ fontSize: '20px' }}>Serum</Typography>
+                  <Typography style={{ fontSize: '20px' }}>Stake</Typography>
                 </div>
               </div>
             </Button>

@@ -1096,10 +1096,7 @@ class Accounts {
     if (pool === undefined) {
       pool = await this.pool(registrar || this.registrarAddress);
     }
-    console.log('getting mint', pool);
-    const m = getMintInfo(this.provider, pool.poolTokenMint);
-    console.log('got mint', m);
-    return m;
+    return await getMintInfo(this.provider, pool.poolTokenMint);
   }
 
   async poolVault(registrar: PublicKey | Registrar): Promise<AccountInfo> {
@@ -1126,6 +1123,16 @@ class Accounts {
       throw new Error('Failed to find staking pool');
     }
     return decodePoolState(acc.data);
+  }
+
+  async megaPoolTokenMint(
+    pool?: PoolState,
+    registrar?: Registrar,
+  ): Promise<MintInfo> {
+    if (pool === undefined) {
+      pool = await this.megaPool(registrar || this.registrarAddress);
+    }
+    return await getMintInfo(this.provider, pool.poolTokenMint);
   }
 
   async vaultAuthority(

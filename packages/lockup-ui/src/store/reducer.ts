@@ -3,6 +3,7 @@ import { PublicKey } from '@solana/web3.js';
 import { AccountInfo as TokenAccount } from '@solana/spl-token';
 import * as lockup from '@project-serum/lockup';
 import * as registry from '@project-serum/registry';
+import { PoolState } from '@project-serum/pool';
 
 export default function reducer(
   state: State = initialState,
@@ -61,6 +62,14 @@ export default function reducer(
     case ActionType.RegistrySetMember:
       newState.registry.member = action.item.member;
       return newState;
+    case ActionType.RegistrySetPools:
+      newState.registry.pool = action.item.pool;
+      newState.registry.poolTokenMint = action.item.poolTokenMint;
+      newState.registry.poolVault = action.item.poolVault;
+      newState.registry.megaPool = action.item.megaPool;
+      newState.registry.megaPoolTokenMint = action.item.megaPoolTokenMint;
+      newState.registry.megaPoolVaults = action.item.megaPoolVaults;
+      return newState;
 
     // Misc.
     default:
@@ -90,6 +99,12 @@ export type LockupState = {
 export type RegistryState = {
   entities: ProgramAccount<registry.accounts.Entity>[];
   member?: ProgramAccount<registry.accounts.Member>;
+  pool?: ProgramAccount<PoolState>;
+  poolTokenMint?: ProgramAccount<TokenAccount>;
+  poolVault?: ProgramAccount<TokenAccount>;
+  megaPool?: ProgramAccount<PoolState>;
+  megaPoolTokenMint?: ProgramAccount<TokenAccount>;
+  megaPoolVaults?: ProgramAccount<TokenAccount[]>;
 };
 
 export const initialState: State = {

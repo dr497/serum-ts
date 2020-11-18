@@ -4,6 +4,7 @@ import Layout from './components/common/Layout';
 import NewVestingAccount from './pages/lockup/NewVestingAccount';
 import VestingAccounts from './pages/lockup/VestingAccounts';
 import Entities from './pages/registry/Entities';
+import Pool from './pages/registry/Pool';
 
 export default function Routes() {
   return (
@@ -18,6 +19,7 @@ export default function Routes() {
             component={NewVestingAccount}
           />
           <Route exact path="/registry/entities" component={Entities} />
+          <Route exact path="/registry/pool" component={Pool} />
         </Layout>
       </HashRouter>
     </React.Fragment>

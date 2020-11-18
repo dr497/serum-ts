@@ -15,6 +15,7 @@ import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import ExploreIcon from '@material-ui/icons/Explore';
 import CloudOffIcon from '@material-ui/icons/CloudOff';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import PoolIcon from '@material-ui/icons/Pool';
 import { PublicKey } from '@solana/web3.js';
 import * as registry from '@project-serum/registry';
 import { WalletConnectButton, useWallet } from './Wallet';
@@ -182,6 +183,11 @@ function NavBar(props: NavBarProps) {
                 <div onClick={() => history.push('/registry/entities')}>
                   <IconButton color="inherit">
                     <ExploreIcon />
+                  </IconButton>
+                </div>
+                <div onClick={() => history.push('/registry/pool')}>
+                  <IconButton color="inherit">
+                    <PoolIcon />
                   </IconButton>
                 </div>
                 <div onClick={() => history.push('/lockup')}>

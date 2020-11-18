@@ -8,7 +8,13 @@ import {
 } from '@solana/web3.js';
 import { Provider } from './provider';
 import { Layout, struct, Structure, u8, nu64, blob } from 'buffer-layout';
-import { AccountInfo, AccountLayout, u64 } from '@solana/spl-token';
+import {
+  MintInfo,
+  MintLayout,
+  AccountInfo,
+  AccountLayout,
+  u64,
+} from '@solana/spl-token';
 import { TokenInstructions } from '@project-serum/serum';
 import BN from 'bn.js';
 
@@ -164,6 +170,25 @@ export async function createAccountRentExempt(
   );
   await provider.send(tx, [acc]);
   return acc;
+}
+
+export async function getMintInfo(
+  provider: Provider,
+  addr: PublicKey,
+): Promise<MintInfo> {
+  let depositorAccInfo = await provider.connection.getAccountInfo(addr);
+  if (depositorAccInfo === null) {
+    throw new Error('Failed to find token account');
+  }
+  return parseMintAccount(depositorAccInfo.data);
+}
+
+function parseMintAccount(data: Buffer): MintInfo {
+  const m = MintLayout.decode(data);
+  m.mintAuthority = new PublicKey(m.mintAuthority);
+  m.supply = u64.fromBuffer(m.supply);
+  m.isInitialized = m.state !== 0;
+  return m;
 }
 
 export async function getTokenAccount(

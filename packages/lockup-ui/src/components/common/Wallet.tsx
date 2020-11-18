@@ -118,8 +118,31 @@ export function WalletConnectButton(
       });
     };
 
+		const fetchPoolData = async () => {
+			const registrar = await registryClient.accounts.registrar();
+			const [pool, poolTokenMint, poolVault, megaPool, megaPoolTokenMint, megaPoolVaults] = await Promise.all([
+				registryClient.accounts.pool(registrar),
+				registryClient.accounts.poolTokenMint(undefined, registrar),
+				registryClient.accounts.poolVault(registrar),
+				registryClient.accounts.megaPool(registrar),
+				registryClient.accounts.poolTokenMint(undefined, registrar),
+				registryClient.accounts.megaPoolVaults(registrar),
+			]);
+			dispatch({
+				type: ActionType.RegistrySetPools,
+				item: {
+					pool,
+					poolTokenMint,
+					poolVault,
+					megaPool,
+					megaPoolTokenMint,
+					megaPoolVaults,
+				}
+			});
+		};
+
     const fetchBootstrapData = async () => {
-      await Promise.all([fetchEntityAccounts()]);
+      await Promise.all([fetchEntityAccounts(), fetchPoolData()]);
       dispatch({
         type: ActionType.CommonAppDidStart,
         item: {},

@@ -23,4 +23,5 @@ export enum ActionType {
   RegistryCreateEntity,
   RegistrySetEntities,
   RegistrySetMember,
+  RegistrySetPools,
 }

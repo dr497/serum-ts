@@ -12,12 +12,13 @@ import {
   SYSVAR_RENT_PUBKEY,
   SYSVAR_CLOCK_PUBKEY,
 } from '@solana/web3.js';
-import { AccountInfo } from '@solana/spl-token';
+import { AccountInfo, MintInfo } from '@solana/spl-token';
 import { TOKEN_PROGRAM_ID } from '@project-serum/serum/lib/token-instructions';
 import {
   createMint,
   createTokenAccount,
   getTokenAccount,
+  getMintInfo,
   createAccountRentExempt,
   SPL_SHARED_MEMORY_ID,
   Provider,
@@ -1088,6 +1089,19 @@ class Accounts {
     return decodePoolState(acc.data);
   }
 
+  async poolTokenMint(
+    pool?: PoolState,
+    registrar?: Registrar,
+  ): Promise<MintInfo> {
+    if (pool === undefined) {
+      pool = await this.pool(registrar || this.registrarAddress);
+    }
+    console.log('getting mint', pool);
+    const m = getMintInfo(this.provider, pool.poolTokenMint);
+    console.log('got mint', m);
+    return m;
+  }
+
   async poolVault(registrar: PublicKey | Registrar): Promise<AccountInfo> {
     const p = await this.pool(registrar);
     return getTokenAccount(this.provider, p.assets[0].vaultAddress);
@@ -1096,7 +1110,7 @@ class Accounts {
   async megaPoolVaults(
     registrar: PublicKey | Registrar,
   ): Promise<[AccountInfo, AccountInfo]> {
-    const p = await this.pool(registrar);
+    const p = await this.megaPool(registrar);
     return Promise.all([
       getTokenAccount(this.provider, p.assets[0].vaultAddress),
       getTokenAccount(this.provider, p.assets[1].vaultAddress),
@@ -1336,46 +1350,3 @@ function poolStateSize(assetLen: number): number {
     customState: Buffer.from([]),
   }).length;
 }
-
-/*
-							<Typography
-                style={{
-									marginTop: '5px',
-									fontSize: '12px',
-									overflow: 'hidden',
-									color: 'rgba(0, 0, 0, 0.54)',
-								}}
-							>
-								<div style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-								}}>
-									<div>
-										Leader
-									</div>
-									<div>
-										{entity.account.leader.toString()}
-									</div>
-								</div>
-							</Typography>
-							<Typography
-                style={{
-									marginTop: '5px',
-									fontSize: '12px',
-									overflow: 'hidden',
-									color: 'rgba(0, 0, 0, 0.54)',
-									borderBottom: 'solid 1pt',
-								}}
-							>
-								SRM Pool Shares
-							</Typography>
-              <Typography
-                style={{
-									fontSize: '12px',
-									overflow: 'hidden',
-									color: 'rgba(0, 0, 0, 0.54)',
-								}}
-              >
-                {entity.account.balances.sptAmount.toString()}
-              </Typography>
-*/

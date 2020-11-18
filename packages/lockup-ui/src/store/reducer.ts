@@ -4,6 +4,7 @@ import { AccountInfo as TokenAccount, MintInfo } from '@solana/spl-token';
 import * as lockup from '@project-serum/lockup';
 import * as registry from '@project-serum/registry';
 import { PoolState } from '@project-serum/pool';
+import { ProgramAccount as CommonProgramAccount } from '@project-serum/common';
 
 export default function reducer(
   state: State = initialState,
@@ -124,7 +125,5 @@ export const initialState: State = {
   },
 };
 
-export type ProgramAccount<T> = {
-  publicKey: PublicKey;
-  account: T;
-};
+// Re-export.
+export type ProgramAccount<T> = CommonProgramAccount<T>;

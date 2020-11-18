@@ -32,7 +32,7 @@ export default function Pool() {
       member: state.registry.member,
     };
   });
-  console.log('DATA:', pool, poolVault, megaPool, megaPoolVaults);
+
   const prices = new PoolPrices({
     poolVault: poolVault!.account,
     poolTokenMint: poolTokenMint!.account,

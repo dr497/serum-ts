@@ -1,4 +1,5 @@
 import BN from 'bn.js';
+import * as bs58 from 'bs58';
 import {
   TransactionSignature,
   Account,
@@ -19,6 +20,7 @@ import {
   Provider,
   Wallet,
   NodeWallet,
+  ProgramAccount,
 } from '@project-serum/common';
 import * as instruction from './instruction';
 import * as accounts from './accounts';
@@ -62,7 +64,7 @@ export default class Client {
     this.provider = cfg.provider;
     this.programId = cfg.programId;
     this.safe = cfg.safe;
-    this.accounts = new Accounts(cfg.provider, cfg.safe);
+    this.accounts = new Accounts(cfg.provider, cfg.safe, cfg.programId);
   }
 
   // Connects to the devnet deployment of the lockup program.
@@ -578,7 +580,11 @@ export default class Client {
 }
 
 class Accounts {
-  constructor(readonly provider: Provider, private safeAddress: PublicKey) {}
+  constructor(
+    readonly provider: Provider,
+    private safeAddress: PublicKey,
+    private programId: PublicKey,
+  ) {}
 
   async safe(safeAddress?: PublicKey): Promise<Safe> {
     if (safeAddress === undefined) {
@@ -624,6 +630,61 @@ class Accounts {
       [safeAddress.toBuffer(), Buffer.from([safe.nonce])],
       programId,
     );
+  }
+
+  // Fetch all vesting accounts with the given beneficiary.
+  async allVestings(
+    beneficiary: PublicKey,
+  ): Promise<ProgramAccount<accounts.Vesting>[]> {
+    let filters = this.getVestingAccountsFilters(beneficiary);
+
+    // @ts-ignore
+    let resp = await this.provider.connection._rpcRequest(
+      'getProgramAccounts',
+      [
+        this.programId.toBase58(),
+        {
+          commitment: this.provider.connection.commitment,
+          filters,
+        },
+      ],
+    );
+    if (resp.error) {
+      throw new Error(
+        'failed to get token accounts owned by ' +
+          beneficiary.toBase58() +
+          ': ' +
+          resp.error.message,
+      );
+    }
+
+    return (
+      resp.result
+        // @ts-ignore
+        .map(({ pubkey, account: { data } }) => {
+          data = bs58.decode(data);
+          return {
+            publicKey: new PublicKey(pubkey),
+            account: accounts.vesting.decode(data),
+          };
+        })
+    );
+  }
+
+  private getVestingAccountsFilters(beneficiary: PublicKey) {
+    return [
+      {
+        memcmp: {
+          // todo: update once we move the option around
+          // @ts-ignore
+          offset: 35, //accounts.vesting.VESTING_LAYOUT.offsetOf('beneficiary'),
+          bytes: beneficiary.toBase58(),
+        },
+      },
+      {
+        dataSize: accounts.vesting.SIZE,
+      },
+    ];
   }
 }
 

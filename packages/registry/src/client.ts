@@ -1,4 +1,5 @@
 import BN from 'bn.js';
+import * as bs58 from 'bs58';
 import {
   TransactionSignature,
   Account,
@@ -24,6 +25,7 @@ import {
   Provider,
   Wallet,
   NodeWallet,
+  ProgramAccount,
 } from '@project-serum/common';
 import {
   encodePoolState,
@@ -79,7 +81,7 @@ export default class Client {
     this.provider = cfg.provider;
     this.programId = cfg.programId;
     this.stakeProgramId = cfg.stakeProgramId;
-    this.accounts = new Accounts(cfg.provider, cfg.registrar);
+    this.accounts = new Accounts(cfg.provider, cfg.registrar, cfg.programId);
     this.registrar = cfg.registrar;
   }
 
@@ -1031,6 +1033,7 @@ class Accounts {
   constructor(
     readonly provider: Provider,
     readonly registrarAddress: PublicKey,
+    readonly programId: PublicKey,
   ) {}
 
   async registrar(address?: PublicKey): Promise<Registrar> {
@@ -1146,6 +1149,96 @@ class Accounts {
     return PublicKey.createProgramAddress(
       [registrarAddr.toBuffer(), Buffer.from([registrar.nonce])],
       programId,
+    );
+  }
+
+  async allEntities(): Promise<ProgramAccount<Entity>[]> {
+    let filters = [
+      {
+        memcmp: {
+          offset: 0,
+          bytes: '2',
+        },
+      },
+      {
+        dataSize: accounts.entity.SIZE,
+      },
+    ];
+
+    // @ts-ignore
+    let resp = await this.provider.connection._rpcRequest(
+      'getProgramAccounts',
+      [
+        this.programId.toBase58(),
+        {
+          commitment: this.provider.connection.commitment,
+          filters,
+        },
+      ],
+    );
+    if (resp.error) {
+      throw new Error('failed to get entity accounts');
+    }
+
+    return (
+      resp.result
+        // @ts-ignore
+        .map(({ pubkey, account: { data } }) => {
+          data = bs58.decode(data);
+          return {
+            publicKey: new PublicKey(pubkey),
+            account: accounts.entity.decode(data),
+          };
+        })
+    );
+  }
+
+  async membersWithBeneficiary(
+    publicKey: PublicKey,
+  ): Promise<ProgramAccount<Member>[]> {
+    let filters = [
+      {
+        memcmp: {
+          // @ts-ignore
+          offset: accounts.member.MEMBER_LAYOUT.offsetOf('beneficiary'),
+          bytes: publicKey.toBase58(),
+        },
+      },
+      {
+        dataSize: accounts.member.SIZE,
+      },
+    ];
+
+    // @ts-ignore
+    let resp = await this.provider.connection._rpcRequest(
+      'getProgramAccounts',
+      [
+        this.programId.toBase58(),
+        {
+          commitment: this.provider.connection.commitment,
+          filters,
+        },
+      ],
+    );
+    if (resp.error) {
+      throw new Error(
+        'failed to get member accounts owned by ' +
+          publicKey.toBase58() +
+          ': ' +
+          resp.error.message,
+      );
+    }
+
+    return (
+      resp.result
+        // @ts-ignore
+        .map(({ pubkey, account: { data } }) => {
+          data = bs58.decode(data);
+          return {
+            publicKey: new PublicKey(pubkey),
+            account: accounts.member.decode(data),
+          };
+        })
     );
   }
 }

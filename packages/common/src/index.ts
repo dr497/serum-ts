@@ -19,6 +19,7 @@ import { TokenInstructions } from '@project-serum/serum';
 import BN from 'bn.js';
 
 export * from './provider';
+export * as token from './token';
 
 // Mainnet.
 // export const SPL_SHARED_MEMORY_ID = new PublicKey(
@@ -240,3 +241,8 @@ export function parseTokenAccount(data: Buffer): AccountInfo {
 export function sleep(ms: number): Promise<any> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export type ProgramAccount<T> = {
+  publicKey: PublicKey;
+  account: T;
+};

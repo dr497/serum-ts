@@ -115,15 +115,15 @@ export function WalletConnectButton(
     // Getting rate limited so break up RPC requests and sleep.
     const fetchPoolData = async () => {
       const registrar = await registryClient.accounts.registrar();
-      const [pool, poolVault] = await Promise.all([
-        registryClient.accounts.pool(registrar),
-        registryClient.accounts.poolVault(registrar),
-      ]);
+			await sleep(1000*2);
+      const pool = await registryClient.accounts.pool(registrar);
+			await sleep(1000 * 2);
+			const poolVault = await registryClient.accounts.poolVault(registrar);
       await sleep(1000 * 2);
-      const [megaPool, megaPoolVaults] = await Promise.all([
-        registryClient.accounts.megaPool(registrar),
-        registryClient.accounts.megaPoolVaults(registrar),
-      ]);
+			const megaPool =  await registryClient.accounts.megaPool(registrar);
+			await sleep(1000 * 2);
+			const megaPoolVaults = await registryClient.accounts.megaPoolVaults(registrar);
+			await sleep(1000 * 2);
       const poolTokenMint = await registryClient.accounts.poolTokenMint(
         pool,
         registrar,
@@ -270,7 +270,7 @@ export function WalletConnectButton(
   ) : (
     <Button style={props.style} color="inherit" onClick={connect}>
       <PersonIcon />
-      <Typography style={{ marginLeft: '5px', fontSize: '18px' }}>
+      <Typography style={{ marginLeft: '5px', fontSize: '15px' }}>
         Connect wallet
       </Typography>
     </Button>

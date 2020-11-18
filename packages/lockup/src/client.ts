@@ -636,7 +636,19 @@ class Accounts {
   async allVestings(
     beneficiary: PublicKey,
   ): Promise<ProgramAccount<accounts.Vesting>[]> {
-    let filters = this.getVestingAccountsFilters(beneficiary);
+    let filters = [
+      {
+        memcmp: {
+          // todo: update once we move the option around
+          // @ts-ignore
+          offset: 35, //accounts.vesting.VESTING_LAYOUT.offsetOf('beneficiary'),
+          bytes: beneficiary.toBase58(),
+        },
+      },
+      {
+        dataSize: accounts.vesting.SIZE,
+      },
+    ];
 
     // @ts-ignore
     let resp = await this.provider.connection._rpcRequest(
@@ -669,22 +681,6 @@ class Accounts {
           };
         })
     );
-  }
-
-  private getVestingAccountsFilters(beneficiary: PublicKey) {
-    return [
-      {
-        memcmp: {
-          // todo: update once we move the option around
-          // @ts-ignore
-          offset: 35, //accounts.vesting.VESTING_LAYOUT.offsetOf('beneficiary'),
-          bytes: beneficiary.toBase58(),
-        },
-      },
-      {
-        dataSize: accounts.vesting.SIZE,
-      },
-    ];
   }
 }
 

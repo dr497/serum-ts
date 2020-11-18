@@ -14,6 +14,7 @@ import { State as StoreState, ProgramAccount } from '../../store/reducer';
 export default function Pool() {
   const { wallet } = useWallet();
   const {
+		isBootstrapped,
     pool,
     poolTokenMint,
     poolVault,
@@ -23,6 +24,7 @@ export default function Pool() {
     member,
   } = useSelector((state: StoreState) => {
     return {
+			isBootstrapped: state.common.isBootstrapped,
       pool: state.registry.pool,
       poolTokenMint: state.registry.poolTokenMint,
       poolVault: state.registry.poolVault,
@@ -33,7 +35,7 @@ export default function Pool() {
     };
   });
 
-  const prices = new PoolPrices({
+  const prices = isBootstrapped === false ? undefined : new PoolPrices({
     poolVault: poolVault!.account,
     poolTokenMint: poolTokenMint!.account,
     megaPoolVaults: megaPoolVaults!.map(
@@ -42,8 +44,8 @@ export default function Pool() {
     megaPoolTokenMint: megaPoolTokenMint!.account,
   });
 
-  const poolSharePrice = prices.basket(new BN(1), true);
-  const megaPoolSharePrice = prices.megaBasket(new BN(1), true);
+  // const poolSharePrice = prices.basket(new BN(1), true);
+  // const megaPoolSharePrice = prices.megaBasket(new BN(1), true);
 
   return (
     <div>

@@ -109,7 +109,7 @@ function NavBar(props: NavBarProps) {
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    marginRight: '10px',
+                    marginRight: '15px',
                   }}
                 >
                   <img

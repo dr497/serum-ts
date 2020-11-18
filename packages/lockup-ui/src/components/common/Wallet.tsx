@@ -79,9 +79,10 @@ type WalletConnectButtonProps = {
 export function WalletConnectButton(
   props: WalletConnectButtonProps,
 ): ReactElement {
-  const isConnected = useSelector(
+  const showDisconnect = useSelector(
     (state: StoreState) =>
-      state.common.walletConnection === WalletConnection.Connected,
+      state.common.walletConnection === WalletConnection.Connected ||
+      state.common.walletConnection === WalletConnection.IsConnecting,
   );
   const dispatch = useDispatch();
   const { wallet, client, registryClient } = useWallet();
@@ -98,7 +99,7 @@ export function WalletConnectButton(
   // One time application startup.
   useEffect(() => {
     dispatch({
-      type: ActionType.CommonAppWillStart,
+      type: ActionType.CommonAppWillBootstrap,
       item: {},
     });
     const fetchEntityAccounts = async () => {
@@ -179,8 +180,10 @@ export function WalletConnectButton(
       dispatch({
         type: ActionType.RegistrySetRegistrar,
         item: {
-          publicKey: registryClient.registrar,
-          account: registrar,
+          registrar: {
+            publicKey: registryClient.registrar,
+            account: registrar,
+          },
         },
       });
     };
@@ -190,7 +193,7 @@ export function WalletConnectButton(
       await fetchRegistrar();
       await Promise.all([fetchEntityAccounts(), fetchPoolData()]);
       dispatch({
-        type: ActionType.CommonAppDidStart,
+        type: ActionType.CommonAppDidBootstrap,
         item: {},
       });
     };
@@ -211,6 +214,10 @@ export function WalletConnectButton(
       });
     });
     wallet.on('connect', async () => {
+      enqueueSnackbar(`Connecting to ${wallet.publicKey.toBase58()}`, {
+        variant: 'info',
+        autoHideDuration: 2500,
+      });
       dispatch({
         type: ActionType.CommonWalletWillConnect,
         item: {},
@@ -278,14 +285,10 @@ export function WalletConnectButton(
         type: ActionType.CommonWalletDidConnect,
         item: {},
       });
-      enqueueSnackbar(`Connection established ${wallet.publicKey.toBase58()}`, {
-        variant: 'success',
-        autoHideDuration: 2500,
-      });
     });
   }, [wallet, dispatch, enqueueSnackbar, client.provider.connection]);
 
-  return isConnected ? (
+  return showDisconnect ? (
     <Button style={props.style} color="inherit" onClick={disconnect}>
       <Typography style={{ marginLeft: '5px', fontSize: '15px' }}>
         Disconnect

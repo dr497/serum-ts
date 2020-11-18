@@ -1,5 +1,4 @@
 import { Action, ActionType } from './actions';
-import { PublicKey } from '@solana/web3.js';
 import { AccountInfo as TokenAccount, MintInfo } from '@solana/spl-token';
 import * as lockup from '@project-serum/lockup';
 import * as registry from '@project-serum/registry';
@@ -17,9 +16,9 @@ export default function reducer(
   };
   switch (action.type) {
     // Common.
-    case ActionType.CommonAppWillStart:
+    case ActionType.CommonAppWillBootstrap:
       return newState;
-    case ActionType.CommonAppDidStart:
+    case ActionType.CommonAppDidBootstrap:
       newState.common.isBootstrapped = true;
       return newState;
     case ActionType.CommonWalletSetProvider:
@@ -62,6 +61,16 @@ export default function reducer(
       return newState;
     case ActionType.RegistrySetEntities:
       newState.registry.entities = action.item.entities;
+      return newState;
+    case ActionType.RegistryUpdateEntity:
+      newState.registry.entities = newState.registry.entities.map(e => {
+        if (
+          e.publicKey.toString() === action.item.entity.publicKey.toString()
+        ) {
+          e = action.item.entity;
+        }
+        return { ...e };
+      });
       return newState;
     case ActionType.RegistrySetMember:
       newState.registry.member = action.item.member;

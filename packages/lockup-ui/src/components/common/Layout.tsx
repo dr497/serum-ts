@@ -36,10 +36,11 @@ export default function Layout(props: PropsWithChildren<Props>) {
 }
 
 function Nav(props: PropsWithChildren<Props>): ReactElement {
-  const { walletIsConnected } = useSelector((state: StoreState) => {
+  const { isAppReady } = useSelector((state: StoreState) => {
     return {
-      walletIsConnected:
-        state.common.walletConnection === WalletConnection.Connected,
+      isAppReady:
+        state.common.walletConnection === WalletConnection.Connected &&
+        state.common.isBootstrapped,
     };
   });
   return (
@@ -52,8 +53,8 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
       }}
     >
       <RiskBar />
-      <NavBar walletIsConnected={walletIsConnected} />
-      {!walletIsConnected ? <Disconnected /> : <>{props.children}</>}
+      <NavBar walletIsConnected={isAppReady} />
+      {!isAppReady ? <Disconnected /> : <>{props.children}</>}
     </div>
   );
 }
@@ -130,10 +131,10 @@ function NavBar(props: NavBarProps) {
 }
 
 function Disconnected() {
-  const { isConnecting } = useSelector((state: StoreState) => {
+  const { isDisconnected } = useSelector((state: StoreState) => {
     return {
-      isConnecting:
-        state.common.walletConnection === WalletConnection.IsConnecting,
+      isDisconnected:
+        state.common.walletConnection === WalletConnection.Disconnected,
     };
   });
   return (
@@ -147,11 +148,7 @@ function Disconnected() {
       }}
     >
       <div style={{ display: 'flex', marginLeft: 'auto', marginRight: 'auto' }}>
-        {isConnecting ? (
-          <div>
-            <CircularProgress />
-          </div>
-        ) : (
+        {isDisconnected ? (
           <>
             <div
               style={{
@@ -172,6 +169,10 @@ function Disconnected() {
               Disconnected
             </Typography>
           </>
+        ) : (
+          <div>
+            <CircularProgress />
+          </div>
         )}
       </div>
     </div>

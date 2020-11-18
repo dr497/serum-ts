@@ -285,7 +285,12 @@ function JoinButton(props: JoinButtonProps) {
     enqueueSnackbar(`Joining ${entity.publicKey}`, {
       variant: 'info',
     });
-
+    console.log(
+      'member',
+      member.publicKey.toString(),
+      member.account.entity.toString(),
+      entity.publicKey.toString(),
+    );
     const { tx } = await registryClient.switchEntity({
       member: member.publicKey,
       entity: member.account.entity,

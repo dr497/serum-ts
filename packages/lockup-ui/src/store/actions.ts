@@ -5,8 +5,8 @@ export type Action = {
 
 export enum ActionType {
   // Common.
-  CommonAppWillStart,
-  CommonAppDidStart,
+  CommonAppWillBootstrap,
+  CommonAppDidBootstrap,
   CommonWalletWillConnect,
   CommonWalletDidConnect,
   CommonWalletSetProvider,
@@ -23,6 +23,7 @@ export enum ActionType {
   // Registry.
   RegistryCreateEntity,
   RegistrySetEntities,
+  RegistryUpdateEntity,
   RegistrySetMember,
   RegistrySetPools,
   RegistrySetRegistrar,

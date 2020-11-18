@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import BN from 'bn.js';
 import Container from '@material-ui/core/Container';
@@ -31,6 +31,7 @@ import { useWallet } from '../../components/common/Wallet';
 import OwnedTokenAccountsSelect from '../../components/common/OwnedTokenAccountsSelect';
 import { ViewTransactionOnExplorerButton } from '../../components/common/Notification';
 import { State as StoreState, ProgramAccount } from '../../store/reducer';
+import { ActionType } from '../../store/actions';
 
 export default function Pool() {
   const { wallet, registryClient } = useWallet();
@@ -43,7 +44,9 @@ export default function Pool() {
     megaPoolTokenMint,
     megaPoolVaults,
     member,
+    registrar,
   } = useSelector((state: StoreState) => {
+    console.log('pool using state', state);
     return {
       isBootstrapped: state.common.isBootstrapped,
       pool: state.registry.pool,
@@ -53,6 +56,7 @@ export default function Pool() {
       megaPoolTokenMint: state.registry.megaPoolTokenMint,
       megaPoolVaults: state.registry.megaPoolVaults,
       member: state.registry.member,
+      registrar: state.registry.registrar,
     };
   });
   const [showDepositDialog, setShowDepositDialog] = useState(false);
@@ -114,6 +118,7 @@ export default function Pool() {
               <div>
                 <div>
                   <Button
+                    disabled={member === undefined}
                     onClick={() => setShowDepositDialog(true)}
                     variant="outlined"
                     color="primary"
@@ -127,6 +132,7 @@ export default function Pool() {
                     </Typography>
                   </Button>
                   <Button
+                    disabled={member === undefined}
                     variant="outlined"
                     color="primary"
                     onClick={() => setShowWithdrawDialog(true)}
@@ -169,12 +175,14 @@ export default function Pool() {
       {member !== undefined && (
         <>
           <DepositDialog
+            registrar={registrar!}
             client={registryClient}
             member={member}
             open={showDepositDialog}
             onClose={() => setShowDepositDialog(false)}
           />
           <WithdrawDialog
+            registrar={registrar!}
             client={registryClient}
             member={member}
             open={showWithdrawDialog}
@@ -244,14 +252,16 @@ class PoolPrices {
 
 type DepositDialogProps = {
   member: ProgramAccount<accounts.Member>;
+  registrar: ProgramAccount<accounts.Registrar>;
   client: Client;
   open: boolean;
   onClose: () => void;
 };
 
 function DepositDialog(props: DepositDialogProps) {
-  const { client, member, open, onClose } = props;
+  const { client, registrar, member, open, onClose } = props;
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
   return (
     <TransferDialog
       title={'Deposit'}
@@ -270,12 +280,37 @@ function DepositDialog(props: DepositDialogProps) {
           depositor: from,
           amount: new BN(amount),
           entity: member.account.entity,
+          vault:
+            coin === 'srm'
+              ? registrar.account.vault
+              : registrar.account.megaVault,
+        });
+        const newMember = await client.accounts.member(member.publicKey);
+        const newEntity = await client.accounts.entity(member.account.entity);
+        dispatch({
+          type: ActionType.RegistrySetMember,
+          item: {
+            member: {
+              publicKey: member.publicKey,
+              account: newMember,
+            },
+          },
+        });
+        dispatch({
+          type: ActionType.RegistryUpdateEntity,
+          item: {
+            entity: {
+              publicKey: member.account.entity,
+              account: newEntity,
+            },
+          },
         });
         closeSnackbar();
         enqueueSnackbar(`Deposit complete`, {
           variant: 'success',
           action: <ViewTransactionOnExplorerButton signature={tx} />,
         });
+        onClose();
       }}
     />
   );
@@ -318,8 +353,6 @@ function TransferDialog(props: TransferDialogProps) {
     : networks.devnet.msrm;
   const { registryClient, wallet } = useWallet();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-
-  console.log('coin', coin, from, amount);
 
   return (
     <div>

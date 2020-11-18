@@ -1,7 +1,6 @@
 import React, { PropsWithChildren, ReactElement } from 'react';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -14,6 +13,7 @@ import { WalletConnectButton, useWallet } from './Wallet';
 import { State as StoreState } from '../../store/reducer';
 import LockIcon from '@material-ui/icons/Lock';
 import ExploreIcon from '@material-ui/icons/Explore';
+import CloudOffIcon from '@material-ui/icons/CloudOff';
 
 type Props = {};
 
@@ -150,11 +150,46 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
           </div>
         </Toolbar>
       </AppBar>
-      <Container fixed maxWidth="md">
-        <div style={{ marginTop: '24px', marginBottom: '24px' }}>
-          {props.children}
+      {walletIsConnected ? (
+        <Container fixed maxWidth="md" style={{ flex: 1 }}>
+          <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+            {props.children}
+          </div>
+        </Container>
+      ) : (
+        <div
+          style={{
+            flex: '1',
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{ display: 'flex', marginLeft: 'auto', marginRight: 'auto' }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'column',
+              }}
+            >
+              <CloudOffIcon
+                style={{ fontSize: '65px', color: 'rgba(0, 0, 0, 0.54)' }}
+              />
+            </div>
+            <Typography
+              style={{ marginLeft: '24px' }}
+              color="textSecondary"
+              variant="h2"
+            >
+              Disconnected
+            </Typography>
+          </div>
         </div>
-      </Container>
+      )}
     </div>
   );
 }

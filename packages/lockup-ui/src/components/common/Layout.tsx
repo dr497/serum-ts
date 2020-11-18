@@ -47,15 +47,7 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
     >
       <RiskBar />
       <NavBar walletIsConnected={walletIsConnected} member={member} />
-      {!walletIsConnected ? (
-        <Disconnected />
-      ) : (
-        <Container fixed maxWidth="md" style={{ flex: 1 }}>
-          <div style={{ marginTop: '24px', marginBottom: '24px' }}>
-            {props.children}
-          </div>
-        </Container>
-      )}
+      {!walletIsConnected ? <Disconnected /> : <>{props.children}</>}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Birghtness1Icon from '@material-ui/icons/Brightness1';
+import Container from '@material-ui/core/Container';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -35,46 +36,50 @@ export default function Entities() {
     .concat(entities.filter(e => e.account.state.inactive !== undefined));
 
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: '10px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            flexDirection: 'column',
-          }}
-        >
-          <Typography
+    <Container fixed maxWidth="md" style={{ flex: 1 }}>
+      <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+        <div>
+          <div
             style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '10px',
             }}
           >
-            Node Entities
-          </Typography>
-        </div>
-        <NewButton
-          style={{ visibility: !isWalletConnected || !member ? 'hidden' : '' }}
-        />
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-        }}
-      >
-        {entities.map(entity => (
-          <EntityCard entity={entity} />
-        ))}
-      </div>
-      <style>
-        {`
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'column',
+              }}
+            >
+              <Typography
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                }}
+              >
+                Node Entities
+              </Typography>
+            </div>
+            <NewButton
+              style={{
+                visibility: !isWalletConnected || !member ? 'hidden' : '',
+              }}
+            />
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+            }}
+          >
+            {entities.map(entity => (
+              <EntityCard entity={entity} />
+            ))}
+          </div>
+          <style>
+            {`
 .entity-card-container {
   transition: box-shadow .2s ease-out,-webkit-box-shadow .2s ease-out,-moz-box-shadow .2s ease-out;
 }
@@ -92,8 +97,10 @@ export default function Entities() {
   -webkit-transform: scalee(1.025);
 }
 					`}
-      </style>
-    </div>
+          </style>
+        </div>
+      </div>
+    </Container>
   );
 }
 

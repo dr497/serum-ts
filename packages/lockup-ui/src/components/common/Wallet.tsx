@@ -141,12 +141,32 @@ export function WalletConnectButton(
       dispatch({
         type: ActionType.RegistrySetPools,
         item: {
-          pool,
-          poolTokenMint,
-          poolVault,
-          megaPool,
-          megaPoolTokenMint,
-          megaPoolVaults,
+          pool: {
+            publicKey: registrar.pool,
+            account: pool,
+          },
+          poolTokenMint: {
+            publicKey: pool.poolTokenMint,
+            account: poolTokenMint,
+          },
+          poolVault: {
+            publicKey: pool.assets[0],
+            account: poolVault,
+          },
+          megaPool: {
+            publicKey: registrar.megaPool,
+            account: megaPool,
+          },
+          megaPoolTokenMint: {
+            publicKey: megaPool.poolTokenMint,
+            account: megaPoolTokenMint,
+          },
+          megaPoolVaults: megaPoolVaults.map((v, idx) => {
+            return {
+              publicKey: megaPool.assets[idx],
+              account: v,
+            };
+          }),
         },
       });
     };

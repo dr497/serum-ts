@@ -6,6 +6,7 @@ import { accounts } from '@project-serum/lockup';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
+import Container from '@material-ui/core/Container';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -29,94 +30,119 @@ export default function VestingAccounts() {
         .toNumber()
     : 0;
   return (
-    <>
-      <link
-        rel="stylesheet"
-        href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css"
-      />
-      <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
-      {wallet.publicKey && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '24px',
-          }}
-        >
+    <Container fixed maxWidth="md" style={{ flex: 1 }}>
+      <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+        <link
+          rel="stylesheet"
+          href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css"
+        />
+        <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+        {wallet.publicKey && (
           <div
             style={{
               display: 'flex',
-              justifyContent: 'center',
-              flexDirection: 'column',
+              justifyContent: 'space-between',
+              marginBottom: '24px',
             }}
           >
-            <Typography
+            <div
               style={{
-                fontSize: '20px',
-                fontWeight: 'bold',
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'column',
               }}
             >
-              Vesting Accounts
-            </Typography>
+              <Typography
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                }}
+              >
+                Vesting Accounts
+              </Typography>
+            </div>
+            <div>
+              <RouterLink
+                to={'/lockup/vesting/new'}
+                style={{ color: 'inherit', textDecoration: 'none' }}
+              >
+                <Button variant="contained" color="secondary">
+                  New
+                </Button>
+              </RouterLink>
+            </div>
           </div>
-          <div>
-            <RouterLink
-              to={'/lockup/vesting/new'}
-              style={{ color: 'inherit', textDecoration: 'none' }}
-            >
-              <Button variant="contained" color="secondary">
-                New
-              </Button>
-            </RouterLink>
-          </div>
-        </div>
-      )}
-      <Card>
-        <CardContent style={{ paddingBottom: '16px' }}>
-          {wallet.publicKey ? (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <Typography variant="h5">Beneficiary</Typography>
-                <Typography style={{ fontSize: '16px' }}>
-                  <Link
-                    href={
-                      `https://explorer.solana.com/account/${wallet.publicKey.toBase58()}` +
-                      urlSuffix
-                    }
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    {wallet.publicKey.toString()}
-                  </Link>
-                </Typography>
-              </div>
-              <div>
-                <div
-                  style={{
-                    marginTop: '6px',
-                    color: 'rgba(0, 0, 0, 0.54)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    flexDirection: 'column',
-                  }}
-                >
-                  <Typography variant="body1">
-                    {`${totalBalance} SRM`}
+        )}
+        <Card>
+          <CardContent style={{ paddingBottom: '16px' }}>
+            {wallet.publicKey ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <Typography variant="h5">Beneficiary</Typography>
+                  <Typography style={{ fontSize: '16px' }}>
+                    <Link
+                      href={
+                        `https://explorer.solana.com/account/${wallet.publicKey.toBase58()}` +
+                        urlSuffix
+                      }
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      {wallet.publicKey.toString()}
+                    </Link>
                   </Typography>
                 </div>
+                <div>
+                  <div
+                    style={{
+                      marginTop: '6px',
+                      color: 'rgba(0, 0, 0, 0.54)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <Typography variant="body1">
+                      {`${totalBalance} SRM`}
+                    </Typography>
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <Typography variant="h5">Disconnected</Typography>
+            ) : (
+              <Typography variant="h5">Disconnected</Typography>
+            )}
+          </CardContent>
+        </Card>
+        <List disablePadding>
+          {vestingAccounts.map(v => (
+            <VestingAccountCard vesting={v} />
+          ))}
+          {vestingAccounts.length === 0 && (
+            <Card
+              style={{
+                marginTop: '24px',
+              }}
+            >
+              <CardContent>
+                <ListItem>
+                  <div
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Typography color="textSecondary" variant="h6">
+                      No vesting accounts found
+                    </Typography>
+                  </div>
+                </ListItem>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-      <List disablePadding>
-        {vestingAccounts.map(v => (
-          <VestingAccountCard vesting={v} />
-        ))}
-      </List>
-    </>
+        </List>
+      </div>
+    </Container>
   );
 }
 

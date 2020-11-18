@@ -6,6 +6,7 @@ import { networks } from '@project-serum/lockup';
 import { PublicKey } from '@solana/web3.js';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import Container from '@material-ui/core/Container';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
@@ -63,187 +64,191 @@ export default function NewVesting() {
   const dispatch = useDispatch();
 
   return (
-    <>
-      {isLoading && (
-        <div
-          style={{
-            width: '40px',
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            marginBottom: '24px',
-          }}
-        >
-          <CircularProgress
-            style={{ marginLeft: 'auto', marginRight: 'auto' }}
-          />
-        </div>
-      )}
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="h4" component="h2">
-            New Vesting Account
-          </Typography>
+    <Container fixed maxWidth="md" style={{ flex: 1 }}>
+      <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+        {isLoading && (
           <div
             style={{
-              marginTop: '24px',
-            }}
-          >
-            <FormControl fullWidth>
-              <InputLabel>From</InputLabel>
-              <Select
-                fullWidth
-                value={fromAccount}
-                onChange={e => setFromAccount(e.target.value as string)}
-              >
-                {ownedTokenAccounts.length === 0 ? (
-                  <MenuItem value={''}>No token accounts found</MenuItem>
-                ) : (
-                  ownedTokenAccounts.map(ownedTokenAccount => {
-                    return (
-                      <MenuItem value={ownedTokenAccount.publicKey.toString()}>
-                        <div
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div>{`${ownedTokenAccount.publicKey}`}</div>
-                          <div
-                            style={{ float: 'right', color: '#ccc' }}
-                          >{`${ownedTokenAccount.account.amount}`}</div>
-                        </div>
-                      </MenuItem>
-                    );
-                  })
-                )}
-              </Select>
-              <FormHelperText>Token account to send from</FormHelperText>
-            </FormControl>
-          </div>
-          <div style={{ marginTop: '24px' }}>
-            <TextField
-              fullWidth
-              error={displayBeneficiaryError}
-              helperText={displayBeneficiaryError && 'Invalid beneficiary'}
-              label="Beneficiary"
-              value={beneficiary}
-              onChange={e => setBeneficiary(e.target.value)}
-            />
-            <FormHelperText>Owner of the new vesting account</FormHelperText>
-          </div>
-          <div
-            style={{
-              marginTop: '24px',
-            }}
-          >
-            <TextField
-              error={displayAmountError}
-              helperText={displayAmountError && 'Invalid amount'}
-              fullWidth
-              label="Amount"
-              value={amountStr}
-              onChange={e => setAmountStr(e.target.value)}
-            />
-            <FormHelperText>
-              Amount to deposit into the vesting account
-            </FormHelperText>
-          </div>
-          <div
-            style={{
-              marginTop: '24px',
-            }}
-          >
-            <TextField
-              fullWidth
-              label="End date"
-              type="date"
-              defaultValue={defaultEndDate}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              onChange={e => {
-                const d = new Date(e.target.value);
-                setTimestamp(d.getTime() / 1000);
-              }}
-            />
-            <FormHelperText>Date when all tokens are vested</FormHelperText>
-          </div>
-          <div
-            style={{
-              marginTop: '24px',
-            }}
-          >
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">
-                Periods
-              </InputLabel>
-              <Select
-                fullWidth
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={periodCount}
-                onChange={e => setPeriodCount(e.target.value as number)}
-              >
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-                <MenuItem value={3}>3</MenuItem>
-                <MenuItem value={4}>4</MenuItem>
-                <MenuItem value={5}>5</MenuItem>
-                <MenuItem value={6}>6</MenuItem>
-                <MenuItem value={7}>7</MenuItem>
-                <MenuItem value={8}>8</MenuItem>
-                <MenuItem value={9}>9</MenuItem>
-                <MenuItem value={10}>10</MenuItem>
-              </Select>
-              <FormHelperText>Number of vesting periods</FormHelperText>
-            </FormControl>
-          </div>
-          <div
-            style={{
-              marginTop: '24px',
-              float: 'right',
+              width: '40px',
+              marginLeft: 'auto',
+              marginRight: 'auto',
               marginBottom: '24px',
             }}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={!submitBtnEnabled || isLoading}
-              onClick={async () => {
-                setIsLoading(true);
-                enqueueSnackbar('Creating vesting acount...', {
-                  variant: 'info',
-                });
-                let { vesting } = await client.createVesting({
-                  beneficiary: new PublicKey(beneficiary),
-                  endTs: new BN(timestamp),
-                  periodCount: new BN(periodCount),
-                  depositAmount: new BN(amount),
-                  needsAssignment: null,
-                  depositor: new PublicKey(fromAccount),
-                });
-                const vestingAccount = await client.accounts.vesting(vesting);
-                dispatch({
-                  type: ActionType.LockupCreateVesting,
-                  item: {
-                    vesting: {
-                      publicKey: vesting,
-                      vesting: vestingAccount,
-                    },
-                  },
-                });
-                setIsLoading(false);
-                enqueueSnackbar(`Vesting account created ${vesting}`, {
-                  variant: 'success',
-                });
+            <CircularProgress
+              style={{ marginLeft: 'auto', marginRight: 'auto' }}
+            />
+          </div>
+        )}
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h4" component="h2">
+              New Vesting Account
+            </Typography>
+            <div
+              style={{
+                marginTop: '24px',
               }}
             >
-              Create
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </>
+              <FormControl fullWidth>
+                <InputLabel>From</InputLabel>
+                <Select
+                  fullWidth
+                  value={fromAccount}
+                  onChange={e => setFromAccount(e.target.value as string)}
+                >
+                  {ownedTokenAccounts.length === 0 ? (
+                    <MenuItem value={''}>No token accounts found</MenuItem>
+                  ) : (
+                    ownedTokenAccounts.map(ownedTokenAccount => {
+                      return (
+                        <MenuItem
+                          value={ownedTokenAccount.publicKey.toString()}
+                        >
+                          <div
+                            style={{
+                              width: '100%',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <div>{`${ownedTokenAccount.publicKey}`}</div>
+                            <div
+                              style={{ float: 'right', color: '#ccc' }}
+                            >{`${ownedTokenAccount.account.amount}`}</div>
+                          </div>
+                        </MenuItem>
+                      );
+                    })
+                  )}
+                </Select>
+                <FormHelperText>Token account to send from</FormHelperText>
+              </FormControl>
+            </div>
+            <div style={{ marginTop: '24px' }}>
+              <TextField
+                fullWidth
+                error={displayBeneficiaryError}
+                helperText={displayBeneficiaryError && 'Invalid beneficiary'}
+                label="Beneficiary"
+                value={beneficiary}
+                onChange={e => setBeneficiary(e.target.value)}
+              />
+              <FormHelperText>Owner of the new vesting account</FormHelperText>
+            </div>
+            <div
+              style={{
+                marginTop: '24px',
+              }}
+            >
+              <TextField
+                error={displayAmountError}
+                helperText={displayAmountError && 'Invalid amount'}
+                fullWidth
+                label="Amount"
+                value={amountStr}
+                onChange={e => setAmountStr(e.target.value)}
+              />
+              <FormHelperText>
+                Amount to deposit into the vesting account
+              </FormHelperText>
+            </div>
+            <div
+              style={{
+                marginTop: '24px',
+              }}
+            >
+              <TextField
+                fullWidth
+                label="End date"
+                type="date"
+                defaultValue={defaultEndDate}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                onChange={e => {
+                  const d = new Date(e.target.value);
+                  setTimestamp(d.getTime() / 1000);
+                }}
+              />
+              <FormHelperText>Date when all tokens are vested</FormHelperText>
+            </div>
+            <div
+              style={{
+                marginTop: '24px',
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-helper-label">
+                  Periods
+                </InputLabel>
+                <Select
+                  fullWidth
+                  labelId="demo-simple-select-helper-label"
+                  id="demo-simple-select-helper"
+                  value={periodCount}
+                  onChange={e => setPeriodCount(e.target.value as number)}
+                >
+                  <MenuItem value={1}>1</MenuItem>
+                  <MenuItem value={2}>2</MenuItem>
+                  <MenuItem value={3}>3</MenuItem>
+                  <MenuItem value={4}>4</MenuItem>
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={6}>6</MenuItem>
+                  <MenuItem value={7}>7</MenuItem>
+                  <MenuItem value={8}>8</MenuItem>
+                  <MenuItem value={9}>9</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                </Select>
+                <FormHelperText>Number of vesting periods</FormHelperText>
+              </FormControl>
+            </div>
+            <div
+              style={{
+                marginTop: '24px',
+                float: 'right',
+                marginBottom: '24px',
+              }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!submitBtnEnabled || isLoading}
+                onClick={async () => {
+                  setIsLoading(true);
+                  enqueueSnackbar('Creating vesting acount...', {
+                    variant: 'info',
+                  });
+                  let { vesting } = await client.createVesting({
+                    beneficiary: new PublicKey(beneficiary),
+                    endTs: new BN(timestamp),
+                    periodCount: new BN(periodCount),
+                    depositAmount: new BN(amount),
+                    needsAssignment: null,
+                    depositor: new PublicKey(fromAccount),
+                  });
+                  const vestingAccount = await client.accounts.vesting(vesting);
+                  dispatch({
+                    type: ActionType.LockupCreateVesting,
+                    item: {
+                      vesting: {
+                        publicKey: vesting,
+                        vesting: vestingAccount,
+                      },
+                    },
+                  });
+                  setIsLoading(false);
+                  enqueueSnackbar(`Vesting account created ${vesting}`, {
+                    variant: 'success',
+                  });
+                }}
+              >
+                Create
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Container>
   );
 }

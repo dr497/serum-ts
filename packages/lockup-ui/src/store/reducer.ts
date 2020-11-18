@@ -1,6 +1,6 @@
 import { Action, ActionType } from './actions';
 import { PublicKey } from '@solana/web3.js';
-import { AccountInfo as TokenAccount } from '@solana/spl-token';
+import { AccountInfo as TokenAccount, MintInfo } from '@solana/spl-token';
 import * as lockup from '@project-serum/lockup';
 import * as registry from '@project-serum/registry';
 import { PoolState } from '@project-serum/pool';
@@ -100,11 +100,11 @@ export type RegistryState = {
   entities: ProgramAccount<registry.accounts.Entity>[];
   member?: ProgramAccount<registry.accounts.Member>;
   pool?: ProgramAccount<PoolState>;
-  poolTokenMint?: ProgramAccount<TokenAccount>;
+  poolTokenMint?: ProgramAccount<MintInfo>;
   poolVault?: ProgramAccount<TokenAccount>;
   megaPool?: ProgramAccount<PoolState>;
-  megaPoolTokenMint?: ProgramAccount<TokenAccount>;
-  megaPoolVaults?: ProgramAccount<TokenAccount[]>;
+  megaPoolTokenMint?: ProgramAccount<MintInfo>;
+  megaPoolVaults?: ProgramAccount<TokenAccount>[];
 };
 
 export const initialState: State = {

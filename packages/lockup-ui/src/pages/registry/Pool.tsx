@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
+import BN from 'bn.js';
 import Container from '@material-ui/core/Container';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -21,15 +22,18 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import Slide from '@material-ui/core/Slide';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import { PublicKey } from '@solana/web3.js';
 import { MintInfo, AccountInfo as TokenAccount, u64 } from '@solana/spl-token';
 import { Basket } from '@project-serum/pool';
-import BN from 'bn.js';
+import { accounts, networks, Client } from '@project-serum/registry';
 import { useWallet } from '../../components/common/Wallet';
+import OwnedTokenAccountsSelect from '../../components/common/OwnedTokenAccountsSelect';
+import { ViewTransactionOnExplorerButton } from '../../components/common/Notification';
 import { State as StoreState, ProgramAccount } from '../../store/reducer';
 
 export default function Pool() {
-  const { wallet } = useWallet();
+  const { wallet, registryClient } = useWallet();
   const {
     isBootstrapped,
     pool,
@@ -162,14 +166,22 @@ export default function Pool() {
           </div>
         </Container>
       </div>
-      <DepositDialog
-        open={showDepositDialog}
-        onClose={() => setShowDepositDialog(false)}
-      />
-      <WithdrawDialog
-        open={showWithdrawDialog}
-        onClose={() => setShowWithdrawDialog(false)}
-      />
+      {member !== undefined && (
+        <>
+          <DepositDialog
+            client={registryClient}
+            member={member}
+            open={showDepositDialog}
+            onClose={() => setShowDepositDialog(false)}
+          />
+          <WithdrawDialog
+            client={registryClient}
+            member={member}
+            open={showWithdrawDialog}
+            onClose={() => setShowWithdrawDialog(false)}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -231,31 +243,47 @@ class PoolPrices {
 }
 
 type DepositDialogProps = {
+  member: ProgramAccount<accounts.Member>;
+  client: Client;
   open: boolean;
   onClose: () => void;
 };
 
 function DepositDialog(props: DepositDialogProps) {
-  const { open, onClose } = props;
+  const { client, member, open, onClose } = props;
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   return (
     <TransferDialog
       title={'Deposit'}
       contextText={'Select the amount and coin you want to deposit'}
       open={open}
       onClose={onClose}
-      onTransfer={(amount: number, coin: string): void => {
-        // todo
+      onTransfer={async (from: PublicKey, amount: number, coin: string) => {
+        enqueueSnackbar(
+          `Depositing ${amount} ${coin} from ${from.toString()}`,
+          {
+            variant: 'info',
+          },
+        );
+        const { tx } = await client.deposit({
+          member: member.publicKey,
+          depositor: from,
+          amount: new BN(amount),
+          entity: member.account.entity,
+        });
+        closeSnackbar();
+        enqueueSnackbar(`Deposit complete`, {
+          variant: 'success',
+          action: <ViewTransactionOnExplorerButton signature={tx} />,
+        });
       }}
     />
   );
 }
 
-type WithdrawDialogProps = {
-  open: boolean;
-  onClose: () => void;
-};
+type WithdrawDialogProps = DepositDialogProps;
 
-function WithdrawDialog(props: DepositDialogProps) {
+function WithdrawDialog(props: WithdrawDialogProps) {
   const { open, onClose } = props;
   return (
     <TransferDialog
@@ -263,7 +291,7 @@ function WithdrawDialog(props: DepositDialogProps) {
       contextText={'Select the amount and coin you want to withdraw'}
       open={open}
       onClose={onClose}
-      onTransfer={(amount: number, coin: string): void => {
+      onTransfer={(from: PublicKey, amount: number, coin: string): void => {
         // todo
       }}
     />
@@ -275,25 +303,24 @@ type TransferDialogProps = {
   contextText: string;
   open: boolean;
   onClose: () => void;
-  onTransfer: (amount: number, coin: string) => void;
+  onTransfer: (from: PublicKey, amount: number, coin: string) => void;
 };
 
 function TransferDialog(props: TransferDialogProps) {
   const { open, onClose, onTransfer, title, contextText } = props;
   const [amount, setAmount] = useState<null | number>(null);
   const [coin, setCoin] = useState<null | string>(null);
+  const [from, setFrom] = useState<null | PublicKey>(null);
+  const mint = !coin
+    ? undefined
+    : coin === 'srm'
+    ? networks.devnet.srm
+    : networks.devnet.msrm;
   const { registryClient, wallet } = useWallet();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  // @ts-ignore
-  const onChangeAmount = e => {
-    setAmount(e.target.value);
-  };
+  console.log('coin', coin, from, amount);
 
-  // @ts-ignore
-  const onChangeCoin = e => {
-    setCoin(e.target.value);
-  };
   return (
     <div>
       <Dialog
@@ -301,31 +328,51 @@ function TransferDialog(props: TransferDialogProps) {
         TransitionComponent={Transition}
         keepMounted
         onClose={onClose}
+        fullWidth
       >
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
-          <TextField
-            id="outlined-number"
-            label="Amount"
-            type="number"
-            InputLabelProps={{
-              shrink: true,
-            }}
-            variant="outlined"
-            onChange={onChangeAmount}
-            InputProps={{ inputProps: { min: 0 } }}
-          />
-          <FormControl
-            variant="outlined"
-            style={{ width: '100px', marginLeft: '10px' }}
-          >
-            <InputLabel>Coin</InputLabel>
-            <Select value={coin} onChange={onChangeCoin} label="Coin">
-              <MenuItem value="srm">SRM</MenuItem>
-              <MenuItem value="msrm">MSRM</MenuItem>
-            </Select>
+          <div style={{ display: 'flex' }}>
+            <div style={{ flex: 1 }}>
+              <TextField
+                style={{ width: '100%' }}
+                id="outlined-number"
+                label="Amount"
+                type="number"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                variant="outlined"
+                onChange={e => setAmount(parseInt(e.target.value) as number)}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+              <FormHelperText>{contextText}</FormHelperText>
+            </div>
+            <div>
+              <FormControl
+                variant="outlined"
+                style={{ width: '100px', marginLeft: '10px' }}
+              >
+                <InputLabel>Coin</InputLabel>
+                <Select
+                  value={coin}
+                  onChange={e => setCoin(e.target.value as string)}
+                  label="Coin"
+                >
+                  <MenuItem value="srm">SRM</MenuItem>
+                  <MenuItem value="msrm">MSRM</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+          <FormControl fullWidth>
+            <OwnedTokenAccountsSelect
+              variant="outlined"
+              mint={mint}
+              onChange={(f: PublicKey) => setFrom(f)}
+            />
+            <FormHelperText>Token account to transfer to/from</FormHelperText>
           </FormControl>
-          <DialogContentText>{contextText}</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
@@ -333,9 +380,9 @@ function TransferDialog(props: TransferDialogProps) {
           </Button>
           <Button
             //@ts-ignore
-            onClick={() => onTransfer(amount, coin)}
+            onClick={() => onTransfer(from, amount, coin)}
             color="primary"
-            disabled={!amount || !coin}
+            disabled={!from || !amount || !coin}
           >
             {title}
           </Button>

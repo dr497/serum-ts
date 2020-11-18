@@ -16,11 +16,16 @@ import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import ExploreIcon from '@material-ui/icons/Explore';
 import CloudOffIcon from '@material-ui/icons/CloudOff';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import PoolIcon from '@material-ui/icons/Pool';
 import { PublicKey } from '@solana/web3.js';
 import * as registry from '@project-serum/registry';
 import { WalletConnectButton, useWallet } from './Wallet';
-import { State as StoreState, ProgramAccount } from '../../store/reducer';
+import {
+  State as StoreState,
+  ProgramAccount,
+  WalletConnection,
+} from '../../store/reducer';
 import { ActionType } from '../../store/actions';
 import { ViewTransactionOnExplorerButton } from './Notification';
 
@@ -33,7 +38,8 @@ export default function Layout(props: PropsWithChildren<Props>) {
 function Nav(props: PropsWithChildren<Props>): ReactElement {
   const { walletIsConnected } = useSelector((state: StoreState) => {
     return {
-      walletIsConnected: state.common.walletIsConnected,
+      walletIsConnected:
+        state.common.walletConnection === WalletConnection.Connected,
     };
   });
   return (
@@ -124,6 +130,12 @@ function NavBar(props: NavBarProps) {
 }
 
 function Disconnected() {
+  const { isConnecting } = useSelector((state: StoreState) => {
+    return {
+      isConnecting:
+        state.common.walletConnection === WalletConnection.IsConnecting,
+    };
+  });
   return (
     <div
       style={{
@@ -135,24 +147,32 @@ function Disconnected() {
       }}
     >
       <div style={{ display: 'flex', marginLeft: 'auto', marginRight: 'auto' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            flexDirection: 'column',
-          }}
-        >
-          <CloudOffIcon
-            style={{ fontSize: '65px', color: 'rgba(0, 0, 0, 0.54)' }}
-          />
-        </div>
-        <Typography
-          style={{ marginLeft: '24px' }}
-          color="textSecondary"
-          variant="h2"
-        >
-          Disconnected
-        </Typography>
+        {isConnecting ? (
+          <div>
+            <CircularProgress />
+          </div>
+        ) : (
+          <>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'column',
+              }}
+            >
+              <CloudOffIcon
+                style={{ fontSize: '65px', color: 'rgba(0, 0, 0, 0.54)' }}
+              />
+            </div>
+            <Typography
+              style={{ marginLeft: '24px' }}
+              color="textSecondary"
+              variant="h2"
+            >
+              Disconnected
+            </Typography>
+          </>
+        )}
       </div>
     </div>
   );

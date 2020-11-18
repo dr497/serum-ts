@@ -7,8 +7,9 @@ export enum ActionType {
   // Common.
   CommonAppWillStart,
   CommonAppDidStart,
+  CommonWalletWillConnect,
+  CommonWalletDidConnect,
   CommonWalletSetProvider,
-  CommonWalletIsConnected,
   CommonNetworkSetUrl,
   CommonOwnedTokenAccountsSet,
   CommonClearStore,
@@ -24,4 +25,5 @@ export enum ActionType {
   RegistrySetEntities,
   RegistrySetMember,
   RegistrySetPools,
+  RegistrySetRegistrar,
 }

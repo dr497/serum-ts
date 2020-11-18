@@ -19,6 +19,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { State as StoreState } from '../../store/reducer';
 import { ActionType } from '../../store/actions';
 import { useWallet } from '../../components/common/Wallet';
+import OwnedTokenAccountsSelect from '../../components/common/OwnedTokenAccountsSelect';
 
 export default function NewVesting() {
   const defaultEndDate = '2027-01-01';
@@ -35,7 +36,7 @@ export default function NewVesting() {
   })();
   const displayBeneficiaryError = !isValidBeneficiary && beneficiary !== '';
 
-  const [fromAccount, setFromAccount] = useState('');
+  const [fromAccount, setFromAccount] = useState<null | PublicKey>(null);
   const [timestamp, setTimestamp] = useState(defaultEndTs);
   const [periodCount, setPeriodCount] = useState(7);
   const [amountStr, setAmountStr] = useState('');
@@ -55,7 +56,10 @@ export default function NewVesting() {
   const isValidOwnedTokenAccounts = ownedTokenAccounts.length > 0;
 
   const submitBtnEnabled =
-    isValidBeneficiary && isValidAmountStr && isValidOwnedTokenAccounts;
+    fromAccount !== null &&
+    isValidBeneficiary &&
+    isValidAmountStr &&
+    isValidOwnedTokenAccounts;
 
   const { client } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
@@ -92,36 +96,10 @@ export default function NewVesting() {
             >
               <FormControl fullWidth>
                 <InputLabel>From</InputLabel>
-                <Select
-                  fullWidth
-                  value={fromAccount}
-                  onChange={e => setFromAccount(e.target.value as string)}
-                >
-                  {ownedTokenAccounts.length === 0 ? (
-                    <MenuItem value={''}>No token accounts found</MenuItem>
-                  ) : (
-                    ownedTokenAccounts.map(ownedTokenAccount => {
-                      return (
-                        <MenuItem
-                          value={ownedTokenAccount.publicKey.toString()}
-                        >
-                          <div
-                            style={{
-                              width: '100%',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                            }}
-                          >
-                            <div>{`${ownedTokenAccount.publicKey}`}</div>
-                            <div
-                              style={{ float: 'right', color: '#ccc' }}
-                            >{`${ownedTokenAccount.account.amount}`}</div>
-                          </div>
-                        </MenuItem>
-                      );
-                    })
-                  )}
-                </Select>
+                <OwnedTokenAccountsSelect
+                  mint={srmMint}
+                  onChange={(f: PublicKey) => setFromAccount(f)}
+                />
                 <FormHelperText>Token account to send from</FormHelperText>
               </FormControl>
             </div>
@@ -225,7 +203,7 @@ export default function NewVesting() {
                     periodCount: new BN(periodCount),
                     depositAmount: new BN(amount),
                     needsAssignment: null,
-                    depositor: new PublicKey(fromAccount),
+                    depositor: fromAccount as PublicKey,
                   });
                   const vestingAccount = await client.accounts.vesting(vesting);
                   dispatch({

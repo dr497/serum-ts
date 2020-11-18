@@ -25,8 +25,11 @@ export default function reducer(
     case ActionType.CommonWalletSetProvider:
       newState.common.walletProvider = action.item.walletProvider;
       return newState;
-    case ActionType.CommonWalletIsConnected:
-      newState.common.walletIsConnected = action.item.walletIsConnected;
+    case ActionType.CommonWalletWillConnect:
+      newState.common.walletConnection = WalletConnection.IsConnecting;
+      return newState;
+    case ActionType.CommonWalletDidConnect:
+      newState.common.walletConnection = WalletConnection.Connected;
       return newState;
     case ActionType.CommonNetworkSetUrl:
       newState.common.networkUrl = action.item.networkUrl;
@@ -37,7 +40,7 @@ export default function reducer(
     case ActionType.CommonClearStore:
       return { ...initialState };
     case ActionType.CommonWalletReset:
-      newState.common.walletIsConnected = false;
+      newState.common.walletConnection = WalletConnection.Disconnected;
       newState.common.ownedTokenAccounts = [];
       newState.lockup.vestings = [];
       return newState;
@@ -71,7 +74,9 @@ export default function reducer(
       newState.registry.megaPoolTokenMint = action.item.megaPoolTokenMint;
       newState.registry.megaPoolVaults = action.item.megaPoolVaults;
       return newState;
-
+    case ActionType.RegistrySetRegistrar:
+      newState.registry.registrar = action.item.registrar;
+      return newState;
     // Misc.
     default:
       return newState;
@@ -88,10 +93,16 @@ export type CommonState = {
   loginOnceToken: boolean;
   isBootstrapped: boolean;
   walletProvider?: string;
-  walletIsConnected: boolean;
+  walletConnection: WalletConnection;
   networkUrl?: string;
   ownedTokenAccounts: ProgramAccount<TokenAccount>[];
 };
+
+export enum WalletConnection {
+  Disconnected,
+  IsConnecting,
+  Connected,
+}
 
 export type LockupState = {
   vestings: ProgramAccount<lockup.accounts.Vesting>[];
@@ -106,6 +117,7 @@ export type RegistryState = {
   megaPool?: ProgramAccount<PoolState>;
   megaPoolTokenMint?: ProgramAccount<MintInfo>;
   megaPoolVaults?: ProgramAccount<TokenAccount>[];
+  registrar?: ProgramAccount<registry.accounts.Registrar>;
 };
 
 export const initialState: State = {
@@ -113,7 +125,7 @@ export const initialState: State = {
     loginOnceToken: true,
     isBootstrapped: false,
     walletProvider: 'https://www.sollet.io',
-    walletIsConnected: false,
+    walletConnection: WalletConnection.Disconnected,
     networkUrl: 'https://devnet.solana.com',
     ownedTokenAccounts: [],
   },

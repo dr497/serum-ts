@@ -12,7 +12,11 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import { useWallet } from '../../components/common/Wallet';
-import { ProgramAccount, State as StoreState } from '../../store/reducer';
+import {
+  ProgramAccount,
+  State as StoreState,
+  WalletConnection,
+} from '../../store/reducer';
 import { ActionType } from '../../store/actions';
 import { useHistory } from 'react-router-dom';
 import Entity from './Entity';
@@ -22,7 +26,8 @@ export default function Entities() {
     (state: StoreState) => {
       return {
         entities: state.registry.entities,
-        isWalletConnected: state.common.walletIsConnected,
+        isWalletConnected:
+          state.common.walletConnection === WalletConnection.Connected,
         member: state.registry.member,
       };
     },

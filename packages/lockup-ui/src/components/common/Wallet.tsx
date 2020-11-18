@@ -17,7 +17,11 @@ import Wallet from '@project-serum/sol-wallet-adapter';
 import { Client, accounts } from '@project-serum/lockup';
 import { Client as RegistryClient } from '@project-serum/registry';
 import * as registry from '@project-serum/registry';
-import { State as StoreState, ProgramAccount } from '../../store/reducer';
+import {
+  State as StoreState,
+  ProgramAccount,
+  WalletConnection,
+} from '../../store/reducer';
 import { ActionType } from '../../store/actions';
 
 export function useWallet(): WalletContextValues {
@@ -76,7 +80,8 @@ export function WalletConnectButton(
   props: WalletConnectButtonProps,
 ): ReactElement {
   const isConnected = useSelector(
-    (state: StoreState) => state.common.walletIsConnected,
+    (state: StoreState) =>
+      state.common.walletConnection === WalletConnection.Connected,
   );
   const dispatch = useDispatch();
   const { wallet, client, registryClient } = useWallet();
@@ -169,7 +174,20 @@ export function WalletConnectButton(
       });
     };
 
+    const fetchRegistrar = async () => {
+      const registrar = await registryClient.accounts.registrar();
+      dispatch({
+        type: ActionType.RegistrySetRegistrar,
+        item: {
+          publicKey: registryClient.registrar,
+          account: registrar,
+        },
+      });
+    };
+
     const fetchBootstrapData = async () => {
+      // Break up to avoid rate limits.
+      await fetchRegistrar();
       await Promise.all([fetchEntityAccounts(), fetchPoolData()]);
       dispatch({
         type: ActionType.CommonAppDidStart,
@@ -194,10 +212,8 @@ export function WalletConnectButton(
     });
     wallet.on('connect', async () => {
       dispatch({
-        type: ActionType.CommonWalletIsConnected,
-        item: {
-          walletIsConnected: true,
-        },
+        type: ActionType.CommonWalletWillConnect,
+        item: {},
       });
 
       const fetchOwnedTokenAccounts = async () => {
@@ -258,6 +274,10 @@ export function WalletConnectButton(
         fetchVestingAccounts(),
         fetchMemberAccount(),
       ]);
+      dispatch({
+        type: ActionType.CommonWalletDidConnect,
+        item: {},
+      });
       enqueueSnackbar(`Connection established ${wallet.publicKey.toBase58()}`, {
         variant: 'success',
         autoHideDuration: 2500,
@@ -267,7 +287,9 @@ export function WalletConnectButton(
 
   return isConnected ? (
     <Button style={props.style} color="inherit" onClick={disconnect}>
-      <Typography style={{ fontSize: '18px' }}>Disconnect</Typography>
+      <Typography style={{ marginLeft: '5px', fontSize: '15px' }}>
+        Disconnect
+      </Typography>
     </Button>
   ) : (
     <Button style={props.style} color="inherit" onClick={connect}>

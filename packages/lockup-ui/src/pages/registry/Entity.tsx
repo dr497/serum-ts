@@ -13,7 +13,11 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import * as registry from '@project-serum/registry';
-import { State as StoreState, ProgramAccount } from '../../store/reducer';
+import {
+  State as StoreState,
+  ProgramAccount,
+  WalletConnection,
+} from '../../store/reducer';
 import JoinEntityButton from '../../components/registry/JoinEntity';
 import { ExplorerAddress } from '../../components/common/ExplorerLink';
 import { ViewTransactionOnExplorerButton } from '../../components/common/Notification';
@@ -35,7 +39,8 @@ export default function Entity(props: Props) {
   const [tab, setTab] = useState(TabModel.Stake);
   let { isWalletConnected, member } = useSelector((state: StoreState) => {
     return {
-      isWalletConnected: state.common.walletIsConnected,
+      isWalletConnected:
+        state.common.walletConnection === WalletConnection.Connected,
       member: state.registry.member,
     };
   });

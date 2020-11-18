@@ -7,7 +7,7 @@ type Props = {
 
 export function ViewTransactionOnExplorerButton(props: Props) {
   const { signature } = props;
-  const urlSuffix = 'devnet'; // todo
+  const urlSuffix = '?cluster=devnet'; // todo
   return (
     <Button
       color="inherit"

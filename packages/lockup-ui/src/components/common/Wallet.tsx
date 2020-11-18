@@ -101,9 +101,15 @@ export function WalletConnectButton(
       item: {},
     });
     const fetchEntityAccounts = async () => {
-      const entityAccounts = await getEntityAccounts(
-        registryClient.provider.connection,
-      );
+      const entityAccounts = (
+        await getEntityAccounts(registryClient.provider.connection)
+      )
+        // TODO: change struct layout so we can memcmp this on the RPC instead.
+        .filter(
+          (e: ProgramAccount<registry.accounts.Entity>) =>
+            e.account.registrar.toString() ===
+            registryClient.registrar.toString(),
+        );
       dispatch({
         type: ActionType.RegistrySetEntities,
         item: {
@@ -112,25 +118,8 @@ export function WalletConnectButton(
       });
     };
 
-    const fetchMemberAccount = async () => {
-      const members = await getMemberAccounts(
-        registryClient.provider.connection,
-        wallet.publicKey,
-      );
-      if (members.length > 0) {
-        // TODO: probably want a UI to handle multiple member accounts and
-        //       choosing between them.
-        dispatch({
-          type: ActionType.RegistrySetMember,
-          item: {
-            member: members[0],
-          },
-        });
-      }
-    };
-
     const fetchBootstrapData = async () => {
-      await Promise.all([fetchEntityAccounts(), fetchMemberAccount()]);
+      await Promise.all([fetchEntityAccounts()]);
       dispatch({
         type: ActionType.CommonAppDidStart,
         item: {},
@@ -174,10 +163,14 @@ export function WalletConnectButton(
       };
 
       const fetchVestingAccounts = async () => {
-        const vestingAccounts = await getVestingAccounts(
-          client.provider.connection,
-          wallet.publicKey,
-        );
+        const vestingAccounts = (
+          await getVestingAccounts(client.provider.connection, wallet.publicKey)
+        )
+          // TODO: change struct layout so we can memcmp this on the RPC instead.
+          .filter(
+            (v: ProgramAccount<accounts.Vesting>) =>
+              v.account.safe.toString() === client.safe.toString(),
+          );
         dispatch({
           type: ActionType.LockupSetVestings,
           item: {
@@ -186,7 +179,37 @@ export function WalletConnectButton(
         });
       };
 
-      await Promise.all([fetchOwnedTokenAccounts(), fetchVestingAccounts()]);
+      const fetchMemberAccount = async () => {
+        const members = (
+          await getMemberAccounts(
+            registryClient.provider.connection,
+            wallet.publicKey,
+          )
+        )
+          // TODO: change struct layout so we can memcmp this on the RPC instead.
+          .filter(
+            (m: ProgramAccount<registry.accounts.Member>) =>
+              m.account.registrar.toString() ===
+              registryClient.registrar.toString(),
+          );
+        console.log('members', members);
+        if (members.length > 0) {
+          // TODO: probably want a UI to handle multiple member accounts and
+          //       choosing between them.
+          dispatch({
+            type: ActionType.RegistrySetMember,
+            item: {
+              member: members[0],
+            },
+          });
+        }
+      };
+
+      await Promise.all([
+        fetchOwnedTokenAccounts(),
+        fetchVestingAccounts(),
+        fetchMemberAccount(),
+      ]);
       enqueueSnackbar(`Connection established ${wallet.publicKey.toBase58()}`, {
         variant: 'success',
         autoHideDuration: 2500,
@@ -208,12 +231,56 @@ export function WalletConnectButton(
   );
 }
 
+// TODO: Add all these methods to the client in @project-serum/regsitry + lockup.
 async function getMemberAccounts(
   connection: Connection,
   publicKey: PublicKey,
 ): Promise<ProgramAccount<registry.accounts.Member>[]> {
-  // todo
-  return [];
+  let filters = getMemberAccountsFilters(publicKey);
+
+  // @ts-ignore
+  let resp = await connection._rpcRequest('getProgramAccounts', [
+    registry.networks.devnet.programId.toBase58(),
+    {
+      commitment: connection.commitment,
+      filters,
+    },
+  ]);
+  if (resp.error) {
+    throw new Error(
+      'failed to get member accounts owned by ' +
+        publicKey.toBase58() +
+        ': ' +
+        resp.error.message,
+    );
+  }
+
+  return (
+    resp.result
+      // @ts-ignore
+      .map(({ pubkey, account: { data } }) => {
+        data = bs58.decode(data);
+        return {
+          publicKey: new PublicKey(pubkey),
+          account: registry.accounts.member.decode(data),
+        };
+      })
+  );
+}
+
+function getMemberAccountsFilters(publicKey: PublicKey) {
+  return [
+    {
+      memcmp: {
+        // @ts-ignore
+        offset: registry.accounts.member.MEMBER_LAYOUT.offsetOf('beneficiary'),
+        bytes: publicKey.toBase58(),
+      },
+    },
+    {
+      dataSize: registry.accounts.member.SIZE,
+    },
+  ];
 }
 
 export async function getOwnedTokenAccounts(

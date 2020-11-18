@@ -49,7 +49,7 @@ const MEMBER_BALANCES_LAYOUT: Layout<MemberBalances> = struct([
   ORIGINAL_DEPOSIT_LAYOUT.replicate('delegate'),
 ]);
 
-const MEMBER_LAYOUT: Layout<Member> = struct([
+export const MEMBER_LAYOUT: Layout<Member> = struct([
   bool('initialized'),
   publicKey('registrar'),
   publicKey('entity'),

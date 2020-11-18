@@ -56,6 +56,7 @@ export const networks = {
     msrm: new PublicKey('4gq1S2B4yheTmvy61oArkBqZx7iCid6pvYbn242epFCk'),
     god: new PublicKey('9PRbiYDXcFig3C6cu7VBFuypqbaPfqdq8knY85AgvrKw'),
     megaGod: new PublicKey('dMyk9X7KjyHFAhdDNyEad9k2SaUMQ8Yy42CjMxZfi4V'),
+    retbuf: new PublicKey('FR6hFjWLLnwtk7f3MmVnTGgejT77sgE3FdY5MsbNBqVr'),
   },
 };
 
@@ -521,7 +522,7 @@ export default class Client {
           { pubkey: entity, isWritable: true, isSigner: false },
           { pubkey: newEntity, isWritable: true, isSigner: false },
           { pubkey: SYSVAR_CLOCK_PUBKEY, isWritable: false, isSigner: false },
-        ],
+        ].concat(await this.poolAccounts()),
         programId: this.programId,
         data: instruction.encode({
           switchEntity: {},
@@ -798,16 +799,19 @@ export default class Client {
     }
     let pool = await this.accounts.pool(r);
     let megaPool = await this.accounts.megaPool(r);
+
+    /*
     let retbuf = await createAccountRentExempt(
       this.provider,
       SPL_SHARED_MEMORY_ID,
       MAX_BASKET_SIZE,
-    );
+			);*/
+    let retbuf = networks.devnet.retbuf;
     return [
       // Pids.
       { pubkey: this.stakeProgramId, isWritable: false, isSigner: false },
       { pubkey: SPL_SHARED_MEMORY_ID, isWritable: false, isSigner: false },
-      { pubkey: retbuf.publicKey, isWritable: true, isSigner: false },
+      { pubkey: retbuf, isWritable: true, isSigner: false },
       // Pool.
       { pubkey: r.pool, isWritable: true, isSigner: false },
       { pubkey: pool.poolTokenMint, isWritable: true, isSigner: false },

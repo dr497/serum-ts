@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useSnackbar } from 'notistack';
-import { accounts } from '@project-serum/registry';
 import { PublicKey } from '@solana/web3.js';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
+import * as registry from '@project-serum/registry';
 import { State as StoreState, ProgramAccount } from '../../store/reducer';
 import JoinEntityButton from '../../components/registry/JoinEntity';
 import { ExplorerAddress } from '../../components/common/ExplorerLink';
@@ -15,14 +20,9 @@ import { ViewTransactionOnExplorerButton } from '../../components/common/Notific
 import { ActionType } from '../../store/actions';
 import { useWallet } from '../../components/common/Wallet';
 import { EntityActivityLabel } from './Entities';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardContent from '@material-ui/core/CardContent';
 
 type Props = {
-  entity: ProgramAccount<accounts.Entity>;
+  entity: ProgramAccount<registry.accounts.Entity>;
 };
 
 enum TabModel {
@@ -104,7 +104,24 @@ export default function Entity(props: Props) {
               }}
             >
               <div style={{ flex: 1 }}></div>
-              {isWalletConnected && member !== undefined && <JoinButton />}
+              {isWalletConnected && member !== undefined && (
+                <>
+                  {member.account.entity.toString() !==
+                  entity.publicKey.toString() ? (
+                    <JoinButton entity={entity} member={member} />
+                  ) : (
+                    <Button
+                      disableElevation
+                      disableFocusRipple
+                      disableRipple
+                      variant="contained"
+                      color="primary"
+                    >
+                      <Typography>My Node</Typography>
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -139,7 +156,7 @@ export default function Entity(props: Props) {
 }
 
 type StakeContentProps = {
-  entity: ProgramAccount<accounts.Entity>;
+  entity: ProgramAccount<registry.accounts.Entity>;
 };
 
 function StakeContent(props: StakeContentProps) {
@@ -248,37 +265,50 @@ function MembersContent() {
   return <div>MEMBERS TODO</div>;
 }
 
-function JoinButton() {
+type JoinButtonProps = {
+  entity: ProgramAccount<registry.accounts.Entity>;
+  member: ProgramAccount<registry.accounts.Member>;
+};
+
+function JoinButton(props: JoinButtonProps) {
+  const { entity, member } = props;
   const { registryClient } = useWallet();
   const dispatch = useDispatch();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  const createEntity = async () => {
-    /*
-    enqueueSnackbar('Joining entity...', {
+  const joinEntity = async () => {
+    enqueueSnackbar(`Joining ${entity.publicKey}`, {
       variant: 'info',
     });
-    const { tx, member } = await registryClient.createMember({});
-    const entityAccount = await registryClient.accounts.entity(entity);
+
+    const { tx } = await registryClient.switchEntity({
+      member: member.publicKey,
+      entity: member.account.entity,
+      newEntity: entity.publicKey,
+    });
+
+    const memberAccount = await registryClient.accounts.member(
+      member.publicKey,
+    );
+
     dispatch({
-      type: ActionType.RegistryCreateEntity,
+      type: ActionType.RegistrySetMember,
       item: {
-        entity: {
-          publicKey: entity,
-          account: entityAccount,
-					action: <ViewTransactionOnExplorerButton signature={tx} />
+        member: {
+          publicKey: member.publicKey,
+          account: memberAccount,
         },
       },
     });
     closeSnackbar();
-    enqueueSnackbar(`Entity created ${entity}`, {
+    enqueueSnackbar(`Joined entity ${entity.publicKey}`, {
       variant: 'success',
+      action: <ViewTransactionOnExplorerButton signature={tx} />,
     });
-		*/
   };
   return (
     <div>
-      <Button variant="contained" color="secondary" onClick={createEntity}>
+      <Button variant="contained" color="secondary" onClick={joinEntity}>
         Join
       </Button>
     </div>

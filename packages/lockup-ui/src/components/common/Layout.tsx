@@ -1,6 +1,7 @@
 import React, { PropsWithChildren, ReactElement } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -14,10 +15,12 @@ import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import ExploreIcon from '@material-ui/icons/Explore';
 import CloudOffIcon from '@material-ui/icons/CloudOff';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import { PublicKey } from '@solana/web3.js';
 import * as registry from '@project-serum/registry';
 import { WalletConnectButton, useWallet } from './Wallet';
 import { State as StoreState, ProgramAccount } from '../../store/reducer';
-import NewMember from '../../components/registry/NewMember';
+import { ActionType } from '../../store/actions';
+import { ViewTransactionOnExplorerButton } from './Notification';
 
 type Props = {};
 
@@ -83,8 +86,38 @@ type NavBarProps = {
 
 function NavBar(props: NavBarProps) {
   const { member, walletIsConnected } = props;
-  const { wallet } = useWallet();
+  const { wallet, registryClient } = useWallet();
+  const dispatch = useDispatch();
   const history = useHistory();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const createStakeAccount = async () => {
+    enqueueSnackbar('Creating stake account', {
+      variant: 'info',
+    });
+
+    // Hard coded until we decouple creating members from joining entities.
+    const entity = new PublicKey(
+      'HSJVe1S2Y4AdRnFWsztZpHKW4g27RE3XyE6ZwfyVJgib',
+    );
+    const { tx, member } = await registryClient.createMember({
+      entity,
+    });
+    const memberAcc = await registryClient.accounts.member(member);
+    dispatch({
+      type: ActionType.RegistrySetMember,
+      item: {
+        member: {
+          publicKey: member,
+          account: memberAcc,
+        },
+      },
+    });
+    closeSnackbar();
+    enqueueSnackbar(`Stake account created ${member}`, {
+      variant: 'success',
+      action: <ViewTransactionOnExplorerButton signature={tx} />,
+    });
+  };
   return (
     <AppBar
       position="static"
@@ -178,7 +211,7 @@ function NavBar(props: NavBarProps) {
                 >
                   {member === undefined && (
                     <MenuItem value="create-member">
-                      <div onClick={() => console.log('create member')}>
+                      <div onClick={() => createStakeAccount()}>
                         <IconButton color="inherit">
                           <PersonAddIcon />
                           <Typography style={{ marginLeft: '15px' }}>

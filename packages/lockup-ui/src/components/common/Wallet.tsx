@@ -115,15 +115,17 @@ export function WalletConnectButton(
     // Getting rate limited so break up RPC requests and sleep.
     const fetchPoolData = async () => {
       const registrar = await registryClient.accounts.registrar();
-			await sleep(1000*2);
-      const pool = await registryClient.accounts.pool(registrar);
-			await sleep(1000 * 2);
-			const poolVault = await registryClient.accounts.poolVault(registrar);
       await sleep(1000 * 2);
-			const megaPool =  await registryClient.accounts.megaPool(registrar);
-			await sleep(1000 * 2);
-			const megaPoolVaults = await registryClient.accounts.megaPoolVaults(registrar);
-			await sleep(1000 * 2);
+      const pool = await registryClient.accounts.pool(registrar);
+      await sleep(1000 * 2);
+      const poolVault = await registryClient.accounts.poolVault(registrar);
+      await sleep(1000 * 2);
+      const megaPool = await registryClient.accounts.megaPool(registrar);
+      await sleep(1000 * 2);
+      const megaPoolVaults = await registryClient.accounts.megaPoolVaults(
+        registrar,
+      );
+      await sleep(1000 * 2);
       const poolTokenMint = await registryClient.accounts.poolTokenMint(
         pool,
         registrar,

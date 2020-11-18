@@ -95,13 +95,16 @@ function NavBar(props: NavBarProps) {
             width: '100%',
           }}
         >
-					<div style={{ display: 'flex' }}>
-						<SerumLogoButton />
-						<BarButton label="Stake" hrefClient="/" />
-						<BarButton label="Trade" href="https://dex.projectserum.com" />
-						<BarButton label="Swap" href="https://swap.projectserum.com" />
-						<BarButton label="Learn" href="https://serum-academy.com/en/serum-dex/" />
-					</div>
+          <div style={{ display: 'flex' }}>
+            <SerumLogoButton />
+            <BarButton label="Stake" hrefClient="/" />
+            <BarButton label="Trade" href="https://dex.projectserum.com" />
+            <BarButton label="Swap" href="https://swap.projectserum.com" />
+            <BarButton
+              label="Learn"
+              href="https://serum-academy.com/en/serum-dex/"
+            />
+          </div>
           <div
             style={{
               display: 'flex',
@@ -112,9 +115,7 @@ function NavBar(props: NavBarProps) {
                 display: walletIsConnected ? 'none' : '',
               }}
             />
-            {walletIsConnected && (
-							<UserWalletDropdown />
-            )}
+            {walletIsConnected && <UserWalletDropdown />}
           </div>
         </div>
       </Toolbar>
@@ -158,63 +159,66 @@ function Disconnected() {
 }
 
 function SerumLogoButton() {
-	const history = useHistory();
-	return (
-		<div style={{ display: 'flex' }} onClick={() => history.push('/')}>
-			<Button color="inherit">
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						justifyContent: 'center',
-					}}
-				>
-					<img
-					style={{
-						display: 'block',
-						height: '35px',
-					}}
-					alt="Logo"
-					src="http://dex.projectserum.com/static/media/logo.49174c73.svg"
-					/>
-				</div>
-			</Button>
-		</div>
-	);
+  const history = useHistory();
+  return (
+    <div style={{ display: 'flex' }} onClick={() => history.push('/')}>
+      <Button color="inherit">
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <img
+            style={{
+              display: 'block',
+              height: '35px',
+            }}
+            alt="Logo"
+            src="http://dex.projectserum.com/static/media/logo.49174c73.svg"
+          />
+        </div>
+      </Button>
+    </div>
+  );
 }
 
 type BarButtonProps = {
-	label: string;
-	hrefClient?: string;
-	href?: string;
+  label: string;
+  hrefClient?: string;
+  href?: string;
 };
 
 function BarButton(props: BarButtonProps) {
-	const history = useHistory();
-	const { label, href, hrefClient } = props;
-	return (
-		<div style={{ display: 'flex' }} onClick={() => hrefClient && history.push(hrefClient) }>
-			<Button color ="inherit" href={href}>
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'center',
-						flexDirection: 'column',
-					}}
-				>
-					<Typography style={{ fontSize: '15px' }}>{label}</Typography>
-				</div>
-			</Button>
-		</div>
-	);
+  const history = useHistory();
+  const { label, href, hrefClient } = props;
+  return (
+    <div
+      style={{ display: 'flex' }}
+      onClick={() => hrefClient && history.push(hrefClient)}
+    >
+      <Button color="inherit" href={href}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography style={{ fontSize: '15px' }}>{label}</Typography>
+        </div>
+      </Button>
+    </div>
+  );
 }
 
 function UserWalletDropdown() {
-	const history = useHistory();
+  const history = useHistory();
   const dispatch = useDispatch();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-	const { wallet, registryClient } = useWallet();
-  const {  member } = useSelector((state: StoreState) => {
+  const { wallet, registryClient } = useWallet();
+  const { member } = useSelector((state: StoreState) => {
     return {
       member: state.registry.member,
     };
@@ -249,7 +253,7 @@ function UserWalletDropdown() {
     });
   };
 
-	return (
+  return (
     <>
       <div onClick={() => history.push('/registry/entities')}>
         <IconButton color="inherit">
@@ -301,12 +305,10 @@ function UserWalletDropdown() {
         <MenuItem value="disconnect">
           <IconButton color="inherit">
             <ExitToAppIcon />
-            <Typography style={{ marginLeft: '15px' }}>
-              Disconnect
-            </Typography>
+            <Typography style={{ marginLeft: '15px' }}>Disconnect</Typography>
           </IconButton>
         </MenuItem>
       </Select>
     </>
-	);
+  );
 }

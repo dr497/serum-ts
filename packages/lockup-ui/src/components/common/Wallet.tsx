@@ -11,6 +11,8 @@ import * as bs58 from 'bs58';
 import * as BufferLayout from 'buffer-layout';
 import { useSnackbar } from 'notistack';
 import Button from '@material-ui/core/Button';
+import Typography from '@material-ui/core/Typography';
+import PersonIcon from '@material-ui/icons/Person';
 import { AccountInfo as TokenAccount } from '@solana/spl-token';
 // @ts-ignore
 import Wallet from '@project-serum/sol-wallet-adapter';
@@ -172,11 +174,14 @@ export function WalletConnectButton(
 
   return isConnected ? (
     <Button style={props.style} color="inherit" onClick={disconnect}>
-      Disconnect
+      <Typography style={{ fontSize: '18px' }}>Disconnect</Typography>
     </Button>
   ) : (
     <Button style={props.style} color="inherit" onClick={connect}>
-      Connect wallet
+      <PersonIcon />
+      <Typography style={{ marginLeft: '5px', fontSize: '18px' }}>
+        Connect wallet
+      </Typography>
     </Button>
   );
 }

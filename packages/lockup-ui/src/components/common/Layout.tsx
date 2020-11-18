@@ -110,7 +110,10 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
               }}
             >
               <WalletConnectButton
-                style={{ display: walletIsConnected ? 'none' : '' }}
+                style={{
+                  display: walletIsConnected ? 'none' : '',
+                  textTransform: 'none',
+                }}
               />
               {walletIsConnected && (
                 <>
@@ -128,7 +131,9 @@ function Nav(props: PropsWithChildren<Props>): ReactElement {
                     displayEmpty
                     renderValue={() => {
                       return (
-                        <Typography>{wallet.publicKey.toString()}</Typography>
+                        <Typography style={{ overflow: 'hidden' }}>
+                          {wallet.publicKey.toString()}
+                        </Typography>
                       );
                     }}
                     style={{

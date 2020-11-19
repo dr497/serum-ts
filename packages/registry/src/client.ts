@@ -26,6 +26,7 @@ import {
   Wallet,
   NodeWallet,
   ProgramAccount,
+  networks,
 } from '@project-serum/common';
 import {
   encodePoolState,
@@ -46,22 +47,6 @@ import { PendingWithdrawal } from './accounts/pending-withdrawal';
 import { Entity } from './accounts/entity';
 import { Member } from './accounts/member';
 import { Generation } from './accounts/generation';
-
-export const networks = {
-  devnet: {
-    url: 'https://devnet.solana.com',
-    programId: new PublicKey('HM7psK4cwnn7DXmzhRPbABB9vcA5UR4jLgBwGx98Ntqj'),
-    stakeProgramId: new PublicKey(
-      'FFXx3NM8fXxa4TainZ5o26xrzLuoZQCMZ238cyQGmX8H',
-    ),
-    registrar: new PublicKey('AraER5NbsTzDQV2h6gGz3b7WHfYAejQQbKdn9aSHaqKi'),
-    srm: new PublicKey('2gsgrFTjFsckJiPifzkHP3tznMuqVbh5TTUcVd3iMVQx'),
-    msrm: new PublicKey('4gq1S2B4yheTmvy61oArkBqZx7iCid6pvYbn242epFCk'),
-    god: new PublicKey('9PRbiYDXcFig3C6cu7VBFuypqbaPfqdq8knY85AgvrKw'),
-    megaGod: new PublicKey('dMyk9X7KjyHFAhdDNyEad9k2SaUMQ8Yy42CjMxZfi4V'),
-    retbuf: new PublicKey('FR6hFjWLLnwtk7f3MmVnTGgejT77sgE3FdY5MsbNBqVr'),
-  },
-};
 
 type Config = {
   provider: Provider;
@@ -98,7 +83,7 @@ export default class Client {
     const provider = new Provider(connection, wallet, opts);
     return new Client({
       provider,
-      programId: networks.devnet.programId,
+      programId: networks.devnet.registryProgramId,
       stakeProgramId: networks.devnet.stakeProgramId,
       registrar: networks.devnet.registrar,
     });

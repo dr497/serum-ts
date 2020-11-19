@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import BN from 'bn.js';
-import { networks } from '@project-serum/lockup';
 import { PublicKey } from '@solana/web3.js';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -22,6 +21,14 @@ import { useWallet } from '../../components/common/Wallet';
 import OwnedTokenAccountsSelect from '../../components/common/OwnedTokenAccountsSelect';
 
 export default function NewVesting() {
+  const { network } = useSelector(
+    (state: StoreState) =>  {
+			return {
+				network: state.common.network,
+			};
+		}
+  );
+
   const defaultEndDate = '2027-01-01';
   const defaultEndTs = new Date(defaultEndDate).getTime() / 1000;
 
@@ -45,8 +52,7 @@ export default function NewVesting() {
   const displayAmountError = !isValidAmountStr && amountStr !== '';
   const amount = parseInt(amountStr);
 
-  // TODO: don't hardcode srm filter.
-  const srmMint = networks.devnet.srm;
+  const srmMint = network.srm;
   const ownedTokenAccounts = useSelector((state: StoreState) =>
     state.common.ownedTokenAccounts.filter(
       ota => ota.account.mint.toString() === srmMint.toString(),

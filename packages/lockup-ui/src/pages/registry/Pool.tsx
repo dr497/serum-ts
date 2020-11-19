@@ -26,7 +26,7 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import { PublicKey } from '@solana/web3.js';
 import { MintInfo, AccountInfo as TokenAccount, u64 } from '@solana/spl-token';
 import { Basket } from '@project-serum/pool';
-import { accounts, networks, Client } from '@project-serum/registry';
+import { accounts, Client } from '@project-serum/registry';
 import { useWallet } from '../../components/common/Wallet';
 import OwnedTokenAccountsSelect from '../../components/common/OwnedTokenAccountsSelect';
 import { ViewTransactionOnExplorerButton } from '../../components/common/Notification';
@@ -389,6 +389,13 @@ type TransferDialogProps = {
 };
 
 function TransferDialog(props: TransferDialogProps) {
+	const { srmMint, msrmMint } = useSelector((state: StoreState) => {
+		const network = state.common.network;
+    return {
+			srmMint: network.srm,
+			msrmMint: network.msrm,
+		};
+	});
   const { open, onClose, onTransfer, title, contextText } = props;
   const [amount, setAmount] = useState<null | number>(null);
   const [coin, setCoin] = useState<null | string>(null);
@@ -396,8 +403,8 @@ function TransferDialog(props: TransferDialogProps) {
   const mint = !coin
     ? undefined
     : coin === 'srm'
-    ? networks.devnet.srm
-    : networks.devnet.msrm;
+    ? srmMint
+    : msrmMint;
   const { registryClient, wallet } = useWallet();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 

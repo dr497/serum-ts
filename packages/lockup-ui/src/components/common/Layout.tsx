@@ -236,9 +236,58 @@ function BarButton(props: BarButtonProps) {
 
 function UserWalletDropdown() {
   const history = useHistory();
+
+  return (
+    <>
+      <div onClick={() => history.push('/registry/entities')}>
+        <IconButton color="inherit">
+          <ExploreIcon />
+        </IconButton>
+      </div>
+      <div onClick={() => history.push('/registry/pool')}>
+        <IconButton color="inherit">
+          <PoolIcon />
+        </IconButton>
+      </div>
+      <div onClick={() => history.push('/lockup')}>
+        <IconButton color="inherit">
+          <LockIcon />
+        </IconButton>
+      </div>
+
+			<UserSelector />
+    </>
+  );
+}
+
+function NetworkSelector() {
+	return (
+    <Select
+			value="devnet"
+      style={{
+        marginLeft: '12px',
+        color: 'white',
+      }}
+      onChange={e => {
+        if (e.target.value === 'devnet') {
+
+        }
+      }}
+    >
+      <MenuItem value="devnet">
+        <IconButton color="inherit">
+          <Typography>Devnet</Typography>
+        </IconButton>
+      </MenuItem>
+    </Select>
+	);
+}
+
+function UserSelector() {
+	const { wallet } = useWallet();
   const dispatch = useDispatch();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-  const { wallet, registryClient } = useWallet();
+  const { registryClient } = useWallet();
   const { member } = useSelector((state: StoreState) => {
     return {
       member: state.registry.member,
@@ -273,24 +322,7 @@ function UserWalletDropdown() {
       action: <ViewTransactionOnExplorerButton signature={tx} />,
     });
   };
-
-  return (
-    <>
-      <div onClick={() => history.push('/registry/entities')}>
-        <IconButton color="inherit">
-          <ExploreIcon />
-        </IconButton>
-      </div>
-      <div onClick={() => history.push('/registry/pool')}>
-        <IconButton color="inherit">
-          <PoolIcon />
-        </IconButton>
-      </div>
-      <div onClick={() => history.push('/lockup')}>
-        <IconButton color="inherit">
-          <LockIcon />
-        </IconButton>
-      </div>
+	return (
       <Select
         displayEmpty
         renderValue={() => {
@@ -330,6 +362,5 @@ function UserWalletDropdown() {
           </IconButton>
         </MenuItem>
       </Select>
-    </>
-  );
+	);
 }

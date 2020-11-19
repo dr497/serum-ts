@@ -1,5 +1,7 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Button from '@material-ui/core/Button';
+import { State as StoreState } from '../../store/reducer';
 
 type Props = {
   signature: string;
@@ -7,7 +9,14 @@ type Props = {
 
 export function ViewTransactionOnExplorerButton(props: Props) {
   const { signature } = props;
-  const urlSuffix = '?cluster=devnet'; // todo
+  const { explorerClusterSuffix } = useSelector(
+    (state: StoreState) =>  {
+			return {
+				explorerClusterSuffix: state.common.network.explorerClusterSuffix,
+			};
+		}
+  );
+  const urlSuffix = `?cluster=${explorerClusterSuffix}`;
   return (
     <Button
       color="inherit"

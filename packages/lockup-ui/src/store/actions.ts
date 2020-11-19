@@ -10,7 +10,7 @@ export enum ActionType {
   CommonWalletWillConnect,
   CommonWalletDidConnect,
   CommonWalletSetProvider,
-  CommonNetworkSetUrl,
+  CommonSetNetwork,
   CommonOwnedTokenAccountsSet,
   CommonClearStore,
   CommonWalletReset,

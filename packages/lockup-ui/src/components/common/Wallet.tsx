@@ -9,9 +9,10 @@ import React, {
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from 'notistack';
 import Button from '@material-ui/core/Button';
+import { Connection } from '@solana/web3.js';
 import Typography from '@material-ui/core/Typography';
 import PersonIcon from '@material-ui/icons/Person';
-import { sleep, token } from '@project-serum/common';
+import { sleep, token, Provider } from '@project-serum/common';
 // @ts-ignore
 import Wallet from '@project-serum/sol-wallet-adapter';
 import { Client, accounts } from '@project-serum/lockup';
@@ -43,27 +44,37 @@ type WalletContextValues = {
 export function WalletProvider(
   props: PropsWithChildren<ReactNode>,
 ): ReactElement {
-  const { walletProvider, networkUrl } = useSelector((state: StoreState) => {
+  const { walletProvider, network } = useSelector((state: StoreState) => {
     return {
       walletProvider: state.common.walletProvider,
-      networkUrl: state.common.networkUrl,
+      network: state.common.network,
     };
   });
-  const wallet = useMemo(() => new Wallet(walletProvider, networkUrl), [
-    walletProvider,
-    networkUrl,
-  ]);
 
-  const { client, registryClient } = useMemo(() => {
-    return {
-      client: Client.devnet(wallet, {
-        preflightCommitment: 'recent',
-      }),
-      registryClient: RegistryClient.devnet(wallet, {
-        preflightCommitment: 'recent',
-      }),
-    };
-  }, [wallet]);
+  const { wallet, client, registryClient } = useMemo(() => {
+		const preflightCommitment = 'recent';
+		const opts: { preflightCommitment: 'recent' } = {
+			preflightCommitment,
+		};
+		const connection = new Connection(network.url, preflightCommitment);
+		const wallet = new Wallet(walletProvider, network.url);
+		const provider = new Provider(connection, wallet, opts);
+
+		return {
+			wallet,
+			client: new Client({
+				provider,
+				programId: network.lockupProgramId,
+				safe: network.safe,
+			}),
+			registryClient: new RegistryClient({
+				provider,
+				programId: network.registryProgramId,
+				stakeProgramId: network.stakeProgramId,
+				registrar: network.registrar,
+			}),
+		};
+  }, [walletProvider, network]);
 
   return (
     <WalletContext.Provider value={{ wallet, client, registryClient }}>

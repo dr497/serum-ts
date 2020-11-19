@@ -19,10 +19,15 @@ import BN from 'bn.js';
 
 export default function VestingAccounts() {
   const { wallet } = useWallet();
-  const vestingAccounts = useSelector(
-    (state: StoreState) => state.lockup.vestings,
+  const { vestingAccounts, explorerClusterSuffix } = useSelector(
+    (state: StoreState) =>  {
+			return {
+				vestingAccounts: state.lockup.vestings,
+				explorerClusterSuffix: state.common.network.explorerClusterSuffix,
+			};
+		}
   );
-  const urlSuffix = '?cluster=devnet'; // todo: don't hardcode
+  const urlSuffix = `?cluster=${explorerClusterSuffix}`;
   const totalBalance = wallet.publicKey
     ? vestingAccounts
         .map(va => va.account.balance)
@@ -115,7 +120,7 @@ export default function VestingAccounts() {
         </Card>
         <List disablePadding>
           {vestingAccounts.map(v => (
-            <VestingAccountCard vesting={v} />
+            <VestingAccountCard explorerClusterSuffix={explorerClusterSuffix} vesting={v} />
           ))}
           {vestingAccounts.length === 0 && (
             <Card
@@ -147,11 +152,12 @@ export default function VestingAccounts() {
 }
 
 type VestingAccountCardProps = {
+	explorerClusterSuffix: string;
   vesting: ProgramAccount<accounts.Vesting>;
 };
 
 function VestingAccountCard(props: VestingAccountCardProps) {
-  const { vesting } = props;
+  const { vesting, explorerClusterSuffix } = props;
   const startTs = vesting.account.startTs;
   const endTs = vesting.account.endTs;
 
@@ -196,7 +202,7 @@ function VestingAccountCard(props: VestingAccountCardProps) {
   );
 
   const currencyLabel = 'SRM'; // todo: don't hardcode.
-  const urlSuffix = '?cluster=devnet'; // todo: don't hardcode
+  const urlSuffix = `?cluster=${explorerClusterSuffix}`;
   return (
     <Card
       key={vesting.publicKey.toString()}

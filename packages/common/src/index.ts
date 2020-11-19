@@ -20,6 +20,7 @@ import BN from 'bn.js';
 
 export * from './provider';
 export * as token from './token';
+export { networks, Network } from './networks';
 
 // Mainnet.
 // export const SPL_SHARED_MEMORY_ID = new PublicKey(

@@ -21,6 +21,7 @@ import {
   Wallet,
   NodeWallet,
   ProgramAccount,
+  networks,
 } from '@project-serum/common';
 import * as instruction from './instruction';
 import * as accounts from './accounts';
@@ -32,16 +33,6 @@ import {
   WhitelistEntry,
   SIZE as WHITELIST_SIZE,
 } from './accounts/whitelist';
-
-export const networks = {
-  devnet: {
-    url: 'https://devnet.solana.com',
-    programId: new PublicKey('Fp39W9Ed7Y8YQm4FmgPED62Y2gB5rVHm5aSdswECkdWp'),
-    safe: new PublicKey('A85rfmwbGqTKDXZoiVrYNNFbMPoud2sWeAb2HetfmAMB'),
-    srm: new PublicKey('2gsgrFTjFsckJiPifzkHP3tznMuqVbh5TTUcVd3iMVQx'),
-    god: new PublicKey('9PRbiYDXcFig3C6cu7VBFuypqbaPfqdq8knY85AgvrKw'),
-  },
-};
 
 type Config = {
   provider: Provider;
@@ -80,7 +71,7 @@ export default class Client {
     const provider = new Provider(connection, wallet, opts);
     return new Client({
       provider,
-      programId: networks.devnet.programId,
+      programId: networks.devnet.lockupProgramId,
       safe: networks.devnet.safe,
     });
   }

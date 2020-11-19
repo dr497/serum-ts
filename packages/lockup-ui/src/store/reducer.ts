@@ -3,7 +3,11 @@ import { AccountInfo as TokenAccount, MintInfo } from '@solana/spl-token';
 import * as lockup from '@project-serum/lockup';
 import * as registry from '@project-serum/registry';
 import { PoolState } from '@project-serum/pool';
-import { ProgramAccount as CommonProgramAccount } from '@project-serum/common';
+import {
+  ProgramAccount as CommonProgramAccount,
+  networks,
+  Network,
+} from '@project-serum/common';
 
 export default function reducer(
   state: State = initialState,
@@ -30,8 +34,8 @@ export default function reducer(
     case ActionType.CommonWalletDidConnect:
       newState.common.walletConnection = WalletConnection.Connected;
       return newState;
-    case ActionType.CommonNetworkSetUrl:
-      newState.common.networkUrl = action.item.networkUrl;
+    case ActionType.CommonSetNetwork:
+      newState.common.network = action.item.network;
       return newState;
     case ActionType.CommonOwnedTokenAccountsSet:
       newState.common.ownedTokenAccounts = action.item.ownedTokenAccounts;
@@ -103,7 +107,7 @@ export type CommonState = {
   isBootstrapped: boolean;
   walletProvider?: string;
   walletConnection: WalletConnection;
-  networkUrl?: string;
+  network: Network;
   ownedTokenAccounts: ProgramAccount<TokenAccount>[];
 };
 
@@ -135,7 +139,7 @@ export const initialState: State = {
     isBootstrapped: false,
     walletProvider: 'https://www.sollet.io',
     walletConnection: WalletConnection.Disconnected,
-    networkUrl: 'https://devnet.solana.com',
+    network: networks.devnet,
     ownedTokenAccounts: [],
   },
   lockup: {

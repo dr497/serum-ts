@@ -108,7 +108,9 @@ export default function Pool() {
             >
               <div>
                 <Typography>
-                  {member ? member?.publicKey.toString() : 'Account not found'}
+                  {member
+                    ? member?.publicKey.toString()
+                    : 'Account not found. Please create a stake account.'}
                 </Typography>
                 <Typography color="textSecondary">
                   Generation{' '}
@@ -319,15 +321,60 @@ function DepositDialog(props: DepositDialogProps) {
 type WithdrawDialogProps = DepositDialogProps;
 
 function WithdrawDialog(props: WithdrawDialogProps) {
-  const { open, onClose } = props;
+  const { client, registrar, member, open, onClose } = props;
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
   return (
     <TransferDialog
       title={'Withdraw'}
       contextText={'Select the amount and coin you want to withdraw'}
       open={open}
       onClose={onClose}
-      onTransfer={(from: PublicKey, amount: number, coin: string): void => {
-        // todo
+      onTransfer={async (from: PublicKey, amount: number, coin: string) => {
+        enqueueSnackbar(`Withdrawing ${amount} ${coin} to ${from.toString()}`, {
+          variant: 'info',
+        });
+        const { tx } = await client.withdraw({
+          member: member.publicKey,
+          depositor: from,
+          amount: new BN(amount),
+          entity: member.account.entity,
+          vault:
+            coin === 'srm'
+              ? registrar.account.vault
+              : registrar.account.megaVault,
+          vaultOwner: await client.accounts.vaultAuthority(
+            client.programId,
+            client.registrar,
+            registrar.account,
+          ),
+        });
+        const newMember = await client.accounts.member(member.publicKey);
+        const newEntity = await client.accounts.entity(member.account.entity);
+        dispatch({
+          type: ActionType.RegistrySetMember,
+          item: {
+            member: {
+              publicKey: member.publicKey,
+              account: newMember,
+            },
+          },
+        });
+        dispatch({
+          type: ActionType.RegistryUpdateEntity,
+          item: {
+            entity: {
+              publicKey: member.account.entity,
+              account: newEntity,
+            },
+          },
+        });
+        closeSnackbar();
+        enqueueSnackbar(`Withdraw complete`, {
+          variant: 'success',
+          action: <ViewTransactionOnExplorerButton signature={tx} />,
+        });
+        onClose();
       }}
     />
   );

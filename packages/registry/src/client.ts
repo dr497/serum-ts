@@ -666,14 +666,16 @@ export default class Client {
       depositorAuthority,
       amount,
       vault,
+      vaultOwner,
     } = req;
     if (entity === undefined) {
       let m = await this.accounts.member(member);
       entity = m.entity;
     }
-    let v = await this.vaultFor(depositor);
-    if (vault === undefined) {
+    if (vault === undefined || vaultOwner === undefined) {
+      let v = await this.vaultFor(depositor);
       vault = v.vaultAddress;
+      vaultOwner = v.vault.owner;
     }
 
     const beneficiaryPubkey =
@@ -697,14 +699,14 @@ export default class Client {
             isSigner: true,
           },
           { pubkey: TOKEN_PROGRAM_ID, isWritable: false, isSigner: false },
-          { pubkey: v.vault.owner, isWritable: true, isSigner: false },
+          { pubkey: vaultOwner, isWritable: true, isSigner: false },
           // Program specific.
           { pubkey: member, isWritable: true, isSigner: false },
           { pubkey: beneficiaryPubkey, isWritable: false, isSigner: true },
           { pubkey: entity, isWritable: true, isSigner: false },
           { pubkey: this.registrar, isWritable: false, isSigner: false },
           { pubkey: SYSVAR_CLOCK_PUBKEY, isWritable: false, isSigner: false },
-          { pubkey: v.vault.owner, isWritable: true, isSigner: false },
+          { pubkey: vault, isWritable: true, isSigner: false },
         ].concat(await this.poolAccounts()),
         programId: this.programId,
         data: instruction.encode({
@@ -1350,6 +1352,7 @@ type WithdrawRequest = {
   beneficiary?: Account;
   depositorAuthority?: Account;
   vault?: PublicKey;
+  vaultOwner?: PublicKey;
 };
 
 type WithdrawResponse = {
